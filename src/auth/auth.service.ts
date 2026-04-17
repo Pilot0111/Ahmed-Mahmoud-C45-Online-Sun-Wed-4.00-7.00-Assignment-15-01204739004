@@ -93,7 +93,7 @@ class AuthService {
     const otpValue = await get({ key: generateOtpKey(email) });
 
     if (!otpValue) return next(new AppError("OTP not found or expired", 404));
-    if (code !== otpValue) return next(new AppError("OTP is incorrect", 401));
+    if (code !== String(otpValue)) return next(new AppError("OTP is incorrect", 401));
 
     const user = await this._userModel.findOneAndUpdate({
       filter: { email, confirmed: { $ne: true } },
@@ -241,7 +241,7 @@ class AuthService {
 
     const otpValue = await get({ key: generateForgetPasswordOtpKey(email) });
     if (!otpValue) return next(new AppError("Reset code expired or not found", 404));
-    if (code !== otpValue) return next(new AppError("Invalid reset code", 401));
+    if (code !== String(otpValue)) return next(new AppError("Invalid reset code", 401));
 
     const user = await this._userModel.findOneAndUpdate({
       filter: { email },
