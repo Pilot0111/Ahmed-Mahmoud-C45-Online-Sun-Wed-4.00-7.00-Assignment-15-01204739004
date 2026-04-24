@@ -7,12 +7,12 @@ import {
   AppError,
   globalErrorHandler,
 } from "./common/utils/global-error-handler";
-import { connectRedis } from "./DB/redis/redis.db";
 import authRouter from "./auth/user.controller";
 import { checkConnectionDB } from "./DB/connectionDB";
+import redisService from "./common/service/redis.service";
 const app: express.Application = express();
 const port: number = Number(PORT);
-const bootstrap = () => {
+const bootstrap = async () => {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
@@ -40,10 +40,10 @@ const bootstrap = () => {
       message: "Welcome to Social Media APP ......:)",
       info: "This is the root route. Use /api for API endpoints.",
     });
-  });
-  connectRedis();
+  }); 
   checkConnectionDB();
-  app.use("/auth", authRouter);
+  await redisService.connect(); 
+    app.use("/auth", authRouter);
 
   app.use( (req: Request, res: Response, next: NextFunction)=> {
     throw new AppError(

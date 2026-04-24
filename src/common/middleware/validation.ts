@@ -9,10 +9,12 @@ export const Validation = (schema: schemaType) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: string[] = [];
     for (const key of Object.keys(schema) as reqType[]) {
-      if (!schema[key]) continue;
-      const result = schema[key].safeParse(req[key]);
+      const currentSchema = schema[key];
+      if (!currentSchema) continue;
+
+      const result = currentSchema.safeParse(req[key]);
       if (!result.success) {
-        validationErrors.push(result.error.message);
+        result.error.issues.forEach((issue) => validationErrors.push(issue.message));
       }
     }
     if (validationErrors.length > 0) {

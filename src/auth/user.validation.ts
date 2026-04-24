@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { GenderEnum, RoleEnum } from "../common/enum/user.enum";
+import { EventEnum } from "../common/enum/emailEvent.enum";
 import e from "express";
 
 export const signUpSchema = {
@@ -15,21 +16,28 @@ export const signUpSchema = {
         .min(6, "Password must be at least 6 characters long")
         .max(100),
       cPassword: z.string("Confirm Password must be a string"),
-        address: z.string().max(200).optional(),
-        phone: z.string().max(20).optional(),
-        age: z.number().min(18).max(60),
-        gender: z.nativeEnum(GenderEnum).optional(),
-        role: z.nativeEnum(RoleEnum).optional(),
+      address: z.string().max(200).optional(),
+      phone: z.string().max(20).optional(),
+      age: z.number().min(18).max(60),
+      gender: z.nativeEnum(GenderEnum).optional(),
+      role: z.nativeEnum(RoleEnum).optional(),
     })
-    .refine(
-      (data) => {
-        return data.password === data.cPassword;
+    .refine((data) => data.password === data.cPassword, {
+      message: "Passwords do not match",
+      path: ["cPassword"],
+      when(payload) {
+        return z
+          .object({
+            password: z
+              .string()
+              .min(6, "Password must be at least 6 characters long"),
+            cPassword: z
+              .string()
+              .min(6, "Confirm Password must be at least 6 characters long"),
+          })
+          .safeParse(payload).success;
       },
-      {
-        message: "Passwords do not match",
-        path: ["cPassword"],
-      },
-    ),
+    }),
 };
 
 export const signInSchema = {
@@ -69,12 +77,18 @@ export const forgetPasswordSchema = {
 };
 
 export const resetPasswordSchema = {
-  body: z
-    .object({
-      email: z.string().email(),
-      code: z.string().length(6),
-      newPassword: z.string().min(6),
-    }),
+  body: z.object({
+    email: z.string().email(),
+    code: z.string().length(6),
+    newPassword: z.string().min(6),
+  }),
+};
+
+export const resendOtpSchema = {
+  body: z.object({
+    email: z.string().email("Invalid email address"),
+    subject: z.nativeEnum(EventEnum).optional(),
+  }),
 };
 
 export const gmailTokenSchema = {
@@ -88,3 +102,4 @@ export type ISignInType = z.infer<typeof signInSchema.body>;
 export type IConfirmEmailType = z.infer<typeof confirmEmailSchema.body>;
 export type IUpdatePasswordType = z.infer<typeof updatePasswordSchema.body>;
 export type IGmailTokenType = z.infer<typeof gmailTokenSchema.body>;
+export type IResendOtpType = z.infer<typeof resendOtpSchema.body>;

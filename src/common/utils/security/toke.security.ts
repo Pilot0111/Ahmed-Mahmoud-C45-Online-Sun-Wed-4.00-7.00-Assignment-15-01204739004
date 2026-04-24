@@ -1,12 +1,35 @@
-import jwt from "jsonwebtoken";
-import { JWT_ACCESS_SECRET } from "../../../config/config.service";
+import jwt, { Secret, SignOptions, JwtPayload } from "jsonwebtoken";
 
-export const generateToken = ({ payload = {}, signature = JWT_ACCESS_SECRET, options = {} }: { payload?: any, signature?: string | undefined, options?: jwt.SignOptions } = {}) =>{
-    if (!signature) {
-        throw new Error("Token signature (secret key) is required");
+class TokenService {
+  constructor() {}
+
+  generateToken = ({
+    payload,
+    secret_key,
+    options = {},
+  }: {
+    payload: object;
+    secret_key: Secret | undefined;
+    options?: SignOptions;
+  }): string => {
+    if (!secret_key) {
+      throw new Error("Token secret key is required");
     }
-    return jwt.sign(payload, signature, options);
+    return jwt.sign(payload, secret_key, options);
+  };
+
+  verifyToken = ({
+    token,
+    secret_key,
+  }: {
+    token: string;
+    secret_key: Secret | undefined;
+  }): JwtPayload => {
+    if (!secret_key) {
+      throw new Error("Token secret key is required");
+    }
+    return jwt.verify(token, secret_key) as JwtPayload;
+  };
 }
 
-export const verifyToken = ({ token = "", signature = JWT_ACCESS_SECRET, options = {} }: { token?: string, signature?: string | undefined, options?: jwt.VerifyOptions } = {}) =>
-  jwt.verify(token, signature as string, options);
+export default new TokenService();

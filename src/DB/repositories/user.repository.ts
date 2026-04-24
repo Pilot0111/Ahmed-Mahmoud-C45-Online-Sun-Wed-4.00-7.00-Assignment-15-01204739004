@@ -13,7 +13,7 @@ import BaseRepository from "./base.repository";
 import userModel, { IUser } from "../models/user.model";
 
 class userRepository extends BaseRepository<IUser> {
-  constructor(protected readonly model: Model<IUser> = userModel) {
+  constructor(model: Model<IUser> = userModel) {
     super(model);
   }
   async checkUser(email: string): Promise<boolean> {
@@ -25,4 +25,4 @@ class userRepository extends BaseRepository<IUser> {
   }
 }
 
-export default userRepository;
+export default new userRepository();

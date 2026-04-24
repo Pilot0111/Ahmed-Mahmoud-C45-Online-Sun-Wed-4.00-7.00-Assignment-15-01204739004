@@ -1,5 +1,6 @@
 import mongoose, { Types } from "mongoose";
 import { GenderEnum, RoleEnum } from "../../common/enum/user.enum";
+import { providerEnum } from "../../common/enum/provider.enum";
 
 export interface IUser {
   _id: Types.ObjectId;
@@ -11,8 +12,10 @@ export interface IUser {
   age: number;
   gender?: GenderEnum;
   role?: RoleEnum;
-  phone?: string;
-  address?: string;
+  phone?: string | null;
+  address?: string | null;
+  provider?: providerEnum;
+  profilePicture?: string | null;
   confirmed?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -23,8 +26,20 @@ const userSchema = new mongoose.Schema<IUser>(
     firstName: { type: String, required: true, trim: true, min: 2, max: 25 },
     lastName: { type: String, required: true, trim: true, min: 2, max: 25 },
     email: { type: String, required: true, unique: true, trim: true },
-    password: { type: String, required: true, min: 6, max: 100 },
-    age: { type: Number, required: true, min: 18, max: 60 },
+    password: {
+      type: String,
+      required: function (this: IUser) {
+        return this.provider === providerEnum.system;
+      },
+    },
+    age: {
+      type: Number,
+      required: function (this: IUser) {
+        return this.provider === providerEnum.system;
+      },
+      min: 18,
+      max: 60,
+    },
     gender: {
       type: String,
       enum: Object.values(GenderEnum),
@@ -37,6 +52,12 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     phone: { type: String, trim: true },
     address: { type: String, trim: true },
+    provider: {
+      type: String,
+      enum: Object.values(providerEnum),
+      default: providerEnum.system,
+    },
+    profilePicture: { type: String },
     confirmed: { type: Boolean },
   },
   {
@@ -52,12 +73,28 @@ const userSchema = new mongoose.Schema<IUser>(
   },
 );
 
-userSchema.virtual("userName").get(function () {
-  return `${this.firstName} ${this.lastName}`;
-}).set(function (value: string) {
-  const [firstName, lastName] = value.split(" ");
-  this.set({ firstName, lastName });
+(userSchema.virtual("userName") as any)
+  .get(function (this: IUser) {
+    return `${this.firstName} ${this.lastName}`;
+  })
+  .set(function (this: any, value: string) {
+    const [firstName = "", lastName = ""] = value.split(" ");
+    this.firstName = firstName;
+    this.lastName = lastName;
+  });
+
+userSchema.pre("save", function () {
+  console.log("--- Document Middleware (pre-save) ---");
+  console.log(`[${new Date().toISOString()}] Hook triggered for user ID: ${this._id || 'new document'}`);
+  console.log(`[${new Date().toISOString()}] Data being persisted:`, this.toObject());
 });
 
-export const userModel = mongoose.models.User  || mongoose.model<IUser>("User", userSchema);
+userSchema.pre("find", function () {
+  console.log("--- Query Middleware (pre-find) ---");
+  console.log(`[${new Date().toISOString()}] Hook triggered for model: ${this.model.modelName}`);
+  console.log(`[${new Date().toISOString()}] Query Filter applied:`, this.getFilter());
+});
+
+export const userModel =
+  mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 export default userModel;

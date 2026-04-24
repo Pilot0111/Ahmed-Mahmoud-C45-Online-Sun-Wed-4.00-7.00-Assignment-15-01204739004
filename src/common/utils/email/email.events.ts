@@ -1,8 +1,9 @@
 import { EventEmitter } from "node:events";
+import { EventEnum } from "../../enum/emailEvent.enum";
 
 export const emailEvents = new EventEmitter();
 
-emailEvents.on("confirmEmail", async (fn) => {
+emailEvents.on(EventEnum.confirmEmail, async (fn) => {
   try {
     await fn();
     console.log("Email task completed successfully");

@@ -18,10 +18,14 @@ let envPath = {
 
 
 
-export const MONGODB_URI = process.env.MONGODB_URI;
-export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-export const PREFIX = process.env.PREFIX;
+export const MONGODB_URI = process.env.MONGODB_URI!;
+export const JWT_ACCESS_SECRET_ADMIN = process.env.JWT_ACCESS_SECRET_ADMIN!;
+export const JWT_REFRESH_SECRET_ADMIN = process.env.JWT_REFRESH_SECRET_ADMIN!;
+export const JWT_ACCESS_SECRET_USER = process.env.JWT_ACCESS_SECRET_USER!;
+export const JWT_REFRESH_SECRET_USER = process.env.JWT_REFRESH_SECRET_USER!;
+export const PREFIX_USER = process.env.PREFIX_USER!;
+export const PREFIX_ADMIN = process.env.PREFIX_ADMIN!;
+export const CLIENT_ID = process.env.CLIENT_ID!;
 
 export const SALT_ROUNDS: number = Number(process.env.SALT_ROUNDS) || 10; // Default to 10 if not set or invalid
 export const PUBLIC_KEY = process.env.PUBLIC_KEY;
