@@ -22,10 +22,10 @@ authRouter.post("/upload-image",multerCloud( {store_type: Store_Enum.disk}).sing
 authRouter.post("/upload-images", multerCloud({ store_type: Store_Enum.disk }).array("images", 10), userService.uploadImages);
 authRouter.post("/presigned-url", authentication, Validation(presignedUrlSchema), userService.getPresignedUrl);
 authRouter.post("/profile-pic-presigned-url", authentication, Validation(presignedUrlSchema), userService.getProfilePicPresignedUrl);
-authRouter.get("/get-file/:key(*)", authentication, userService.getFile);
+authRouter.get("/get-file/*key", authentication, userService.getFile);
 authRouter.get("/get-files", authentication, userService.getFiles);
-authRouter.get("/get-presigned-url/:key(*)", authentication, userService.getPresignedUrlByKey);
+authRouter.get("/get-presigned-url/*key", authentication, userService.getPresignedUrlByKey);
 authRouter.delete("/delete-files", authentication, Validation(deleteFilesSchema), userService.deleteFiles);
-authRouter.delete("/delete-folder/:path(*)", authentication, userService.deleteFolder);
+authRouter.delete("/delete-folder/*path", authentication, userService.deleteFolder);
 
 export default authRouter; 
