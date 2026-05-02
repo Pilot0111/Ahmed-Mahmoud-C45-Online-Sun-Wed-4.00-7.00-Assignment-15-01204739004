@@ -37,3 +37,9 @@ export const WHITELIST = process.env.WHITELIST?.split(",") || [];
 export const DB_NAME = process.env.DB_NAME || "SarahaApp";
 
 export const MONGODB_URI_ONLINE = process.env.MONGODB_URI_ONLINE; 
+
+
+export const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!;
+export const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME!;
+export const AWS_REGION = process.env.AWS_REGION!;
+export const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!;

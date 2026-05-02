@@ -8,6 +8,8 @@ import {
   IUpdatePasswordType,
   IGmailTokenType,
   IResendOtpType,
+  IPresignedUrlType,
+  IGetKeyType,
 } from "./user.validation";
 import userRepositoryInstance from "../DB/repositories/user.repository";
 import { symmetricEncryption } from "../common/utils/security/encrypt.security";
@@ -37,12 +39,18 @@ import { EventEnum } from "../common/enum/emailEvent.enum";
 import { providerEnum } from "../common/enum/provider.enum";
 import { SuccessResponse } from "../common/utils/response.success";
 import { RoleEnum } from "../common/enum/user.enum";
-import { Token } from "nodemailer/lib/xoauth2";
+import multerCloud from "../common/middleware/multer.cloud";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { Store_Enum } from "../common/enum/multer.enum";
+import { ObjectCannedACL } from "@aws-sdk/client-s3";
+import { S3Service } from "../service/s3.service";
 
 class AuthService {
   private readonly _userModel = userRepositoryInstance;
   private readonly _redisService = redisService;
   private readonly _tokenService = tokenService;
+  private readonly _s3Service = new S3Service();
 
   constructor() {}
 
@@ -77,11 +85,19 @@ class AuthService {
     let currentTries = await this._redisService.get({ key: triesKey });
 
     if (isResend) {
-      if (currentTries === null) throw new AppError("No active OTP session found", 400);
+      if (currentTries === null)
+        throw new AppError("No active OTP session found", 400);
       if (Number(currentTries) <= 1) {
-        await this._redisService.setValue({ key: blockKey, value: "blocked", ttl: 3600 }); // Block for 1 hour
+        await this._redisService.setValue({
+          key: blockKey,
+          value: "blocked",
+          ttl: 3600,
+        }); // Block for 1 hour
         await this._redisService.deleteKey(triesKey);
-        throw new AppError("Max attempts reached. You are blocked for 1 hour", 429);
+        throw new AppError(
+          "Max attempts reached. You are blocked for 1 hour",
+          429,
+        );
       }
       currentTries = String(Number(currentTries) - 1);
     } else {
@@ -106,7 +122,9 @@ class AuthService {
     // 5. Emit Email Event
     emailEvents.emit(subject, async () => {
       const displaySubject =
-        subject === EventEnum.confirmEmail ? "Email Confirmation" : "Password Reset";
+        subject === EventEnum.confirmEmail
+          ? "Email Confirmation"
+          : "Password Reset";
       await sendEmail({
         to: email,
         subject: `${displaySubject} - Social_Media App`,
@@ -154,7 +172,8 @@ class AuthService {
       SuccessResponse({
         res,
         status: 201,
-        message: "User signed up successfully. Please check your email for the confirmation code.",
+        message:
+          "User signed up successfully. Please check your email for the confirmation code.",
         data: user,
       });
     } catch (error) {
@@ -164,7 +183,8 @@ class AuthService {
 
   resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, subject = EventEnum.confirmEmail }: IResendOtpType = req.body;
+      const { email, subject = EventEnum.confirmEmail }: IResendOtpType =
+        req.body;
 
       const user = await this._userModel.findOne({ filter: { email } });
       if (!user) return next(new AppError("User not found", 404));
@@ -377,10 +397,10 @@ class AuthService {
         res,
         status: 200,
         message: "Gmail login successful",
-        data: { 
-          token: access_token, 
+        data: {
+          token: access_token,
           refresh_token,
-          prefix: user.role === RoleEnum.admin ? PREFIX_ADMIN : PREFIX_USER 
+          prefix: user.role === RoleEnum.admin ? PREFIX_ADMIN : PREFIX_USER,
         },
       });
     } catch (error) {
@@ -491,6 +511,313 @@ class AuthService {
       res,
       message: "Logged out successfully",
     });
+  };
+  uploadImage = async (req: any, res: Response, next: NextFunction) => {
+    const FILE_SIZE_THRESHOLD_FOR_LARGE_UPLOAD = 5 * 1024 * 1024; // 5MB
+
+    try {
+      if (!req.file) {
+        return next(new AppError("No file uploaded", 400));
+      }
+
+      let key: string | undefined;
+      const s3UploadOptions = {
+        file: req.file,
+        path: `Users/${req.user._id}/Uploads`, // A more generic path for all user uploads
+        store_type: Store_Enum.disk, 
+      };
+
+      if (req.file.size > FILE_SIZE_THRESHOLD_FOR_LARGE_UPLOAD) {
+        key = await this._s3Service.uploadLargeFile(s3UploadOptions);
+      } else {
+        key = await this._s3Service.uploadFile(s3UploadOptions);
+      }
+      if (!key) {
+        return next(new AppError("Failed to upload image", 500));
+      }
+
+      SuccessResponse({
+        res,
+        message: "Image uploaded successfully",
+        data: { ...req.file, key },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadImages = async (req: any, res: Response, next: NextFunction) => {
+    const FILE_SIZE_THRESHOLD = 5 * 1024 * 1024; // 5MB
+
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return next(new AppError("No files uploaded", 400));
+      }
+
+      // Determine if any file in the batch exceeds the threshold to use multipart upload
+      const hasLargeFile = files.some((file) => file.size > FILE_SIZE_THRESHOLD);
+
+      const keys = await this._s3Service.uploadFiles({
+        files,
+        path: `Users/${req.user._id}/MultiUploads`,
+        store_type: Store_Enum.disk,
+        isLargeFile: hasLargeFile,
+      });
+
+      SuccessResponse({
+        res,
+        message: "Images uploaded successfully",
+        data: {
+          count: keys.length,
+          keys,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPresignedUrl = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { fileName, contentType }: IPresignedUrlType = req.body;
+
+      const result = await this._s3Service.creatPresignedUrl({
+        fileName,
+        contentType,
+        path: `Users/${req.user._id}/PresignedUploads`,
+      });
+
+      SuccessResponse({
+        res,
+        message: "Presigned URL generated successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getProfilePicPresignedUrl = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { fileName, contentType }: IPresignedUrlType = req.body;
+
+      const result = await this._s3Service.creatPresignedUrl({
+        fileName,
+        contentType,
+        path: `Users/${req.user._id}/Profile`,
+      });
+
+      const user = await this._userModel.findByIdAndUpdate({
+        id: req.user._id,
+        update: { profilePicture: result.Key },
+      });
+
+      if (!user) {
+        // should  not happen if authentication middleware works correctly
+        // and user exists in the database.
+        return next(new AppError("User not found", 404));
+      }
+
+      SuccessResponse({
+        res,
+        message: "Profile picture presigned URL generated successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getFile = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      // key is retrieved from req.params because of the /:key(*) route
+      const key = req.params.key;
+      const isDownload = req.query.download === "true";
+
+      if (!key) {
+        return next(new AppError("File key is required", 400));
+      }
+
+      // Authorization check: Ensure the user can only access files they own or are public
+      // We use startsWith (plural) to check the prefix of the S3 Key
+      const userPath = `Social_Media_App/Users/${req.user._id}/`;
+      const publicPath = `Social_Media_App/Users/Uploads/`;
+
+      if (
+        !key.startsWith(userPath) &&
+        !key.startsWith(publicPath)
+      ) {
+        return next(new AppError("Unauthorized to access this file", 403));
+      }
+
+      const result = await this._s3Service.getFile({ key });
+
+      // Set the content type from S3 and pipe the stream to the response
+      res.setHeader("Content-Type", result.ContentType || "application/octet-stream");
+      if (result.ContentLength) {
+        res.setHeader("Content-Length", result.ContentLength.toString());
+      }
+      res.setHeader("cross-origin-resource-policy", "cross-origin");
+
+      // Determine if the file should be downloaded or viewed inline.
+      // We use encodeURIComponent and filename* for maximum browser compatibility (RFC 5987).
+      const filename = key.split("/").pop();
+      const encodedFilename = encodeURIComponent(filename || "file");
+      const disposition = isDownload 
+        ? `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}` 
+        : "inline";
+      res.setHeader("Content-Disposition", disposition);
+      
+      // Ensure the Body is a readable stream before piping it to the response
+      if (result.Body instanceof Readable) {
+        await pipeline(result.Body, res);
+      } else {
+        throw new AppError("File body is empty", 404);
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getFiles = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      // Optional 'folder' query param to list specific subfolders
+      const { folder } = req.query;
+      const userBasePath = `Users/${req.user._id}${folder ? `/${folder}` : ""}`;
+
+      const files = await this._s3Service.listFiles({ path: userBasePath });
+
+      SuccessResponse({
+        res,
+        message: "Files retrieved successfully",
+        data: files,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPresignedUrlByKey = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { key } = req.params;
+      const isDownload = req.query.download === "true";
+
+      if (!key) {
+        return next(new AppError("File key is required", 400));
+      }
+
+      // Authorization check: Ensure the user can only access files they own or are public
+      const userPath = `Social_Media_App/Users/${req.user._id}/`;
+      const publicPath = `Social_Media_App/Users/Uploads/`;
+
+      if (!key.startsWith(userPath) && !key.startsWith(publicPath)) {
+        return next(new AppError("Unauthorized to access this file", 403));
+      }
+
+      const url = await this._s3Service.getPresignedUrlByKey({ 
+        key,
+        expiresIn: 3600, // URL valid for 1 hour
+        download: isDownload
+      });
+
+      SuccessResponse({
+        res,
+        message: "Presigned URL generated successfully",
+        data: { url },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteFile = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { key } = req.body;
+
+      if (!key) {
+        return next(new AppError("File key is required", 400));
+      }
+
+      // Ensure user owns the file before deleting
+      if (
+        !key.startsWith(`Social_Media_App/Users/${req.user._id}/`)
+      ) {
+        return next(new AppError("Unauthorized to delete this file", 403));
+      }
+
+      await this._s3Service.deleteFile(key);
+
+      SuccessResponse({
+        res,
+        message: "File deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteFiles = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { keys }: { keys: string[] } = req.body;
+
+      if (!keys || !Array.isArray(keys) || keys.length === 0) {
+        return next(new AppError("File keys are required", 400));
+      }
+
+      const userPath = `Social_Media_App/Users/${req.user._id}/`;
+
+      // Security: Validate that the user owns every single file requested for deletion
+      for (const key of keys) {
+        if (!key.startsWith(userPath)) {
+          return next(new AppError(`Unauthorized to delete file: ${key}`, 403));
+        }
+      }
+
+      await this._s3Service.deleteFiles(keys);
+
+      SuccessResponse({
+        res,
+        message: "Files deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteFolder = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const folderPath = req.params.path;
+      if (!folderPath) {
+        return next(new AppError("Folder path is required", 400));
+      }
+
+      // Scoped path to ensure users only delete their own subfolders
+      const userBasePath = `Users/${req.user._id}/${folderPath}`;
+
+      // 1. List all files within the folder using the existing listFiles method
+      const files = await this._s3Service.listFiles({ path: userBasePath });
+
+      if (files.length === 0) {
+        return SuccessResponse({
+          res,
+          message: "Folder is already empty or does not exist",
+        });
+      }
+
+      // 2. Extract the full S3 keys for all objects found in the folder
+      const keys = files.map((file) => file.Key).filter((key): key is string => !!key);
+
+      // 3. Perform a bulk delete using the existing deleteFiles method
+      await this._s3Service.deleteFiles(keys);
+
+      SuccessResponse({
+        res,
+        message: `Successfully deleted folder '${folderPath}' and its ${keys.length} files.`,
+      });
+    } catch (error) {
+      next(error);
+    }
   };
 }
 

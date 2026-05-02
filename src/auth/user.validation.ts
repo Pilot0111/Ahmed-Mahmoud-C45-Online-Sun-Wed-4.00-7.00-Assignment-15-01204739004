@@ -97,9 +97,30 @@ export const gmailTokenSchema = {
   }),
 };
 
+export const presignedUrlSchema = {
+  body: z.object({
+    fileName: z.string().min(1, "File name is required"),
+    contentType: z.string().min(1, "Content type is required"),
+  }),
+};
+
+export const getKeySchema = {
+  body: z.object({
+    key: z.string().min(1, "File key is required"),
+  }),
+};
+
+export const deleteFilesSchema = {
+  body: z.object({
+    keys: z.array(z.string().min(1)).min(1, "At least one key is required"),
+  }),
+};
+
 export type ISignUpType = z.infer<typeof signUpSchema.body>;
 export type ISignInType = z.infer<typeof signInSchema.body>;
 export type IConfirmEmailType = z.infer<typeof confirmEmailSchema.body>;
 export type IUpdatePasswordType = z.infer<typeof updatePasswordSchema.body>;
 export type IGmailTokenType = z.infer<typeof gmailTokenSchema.body>;
 export type IResendOtpType = z.infer<typeof resendOtpSchema.body>;
+export type IPresignedUrlType = z.infer<typeof presignedUrlSchema.body>;
+export type IGetKeyType = z.infer<typeof getKeySchema.body>;

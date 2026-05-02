@@ -276,6 +276,286 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "S3 & Media",
+			"item": [
+				{
+					"name": "Upload Image (Single)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/upload-image",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"upload-image"
+							]
+						}
+					}
+				},
+				{
+					"name": "Upload Images (Multiple)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/upload-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"upload-images"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Presigned URL (Upload)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fileName\": \"test.png\",\n    \"contentType\": \"image/png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/presigned-url",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"presigned-url"
+							]
+						}
+					}
+				},
+				{
+					"name": "Profile Pic Presigned URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fileName\": \"avatar.jpg\",\n    \"contentType\": \"image/jpeg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile-pic-presigned-url",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"profile-pic-presigned-url"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get File (Stream)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/get-file/{{fileKey}}?download=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"get-file",
+								"{{fileKey}}"
+							],
+							"query": [
+								{
+									"key": "download",
+									"value": "false"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "List Files",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/get-files?folder=Uploads",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"get-files"
+							],
+							"query": [
+								{
+									"key": "folder",
+									"value": "Uploads"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Presigned URL (Download)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/get-presigned-url/{{fileKey}}?download=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"get-presigned-url",
+								"{{fileKey}}"
+							],
+							"query": [
+								{
+									"key": "download",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Multiple Files",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"keys\": [\n        \"{{fileKey}}\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/delete-files",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"delete-files"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Folder",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "{{tokenPrefix}} {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/delete-folder/{{folderPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"delete-folder",
+								"{{folderPath}}"
+							]
+						}
+					}
+				}
+			]
 		}
 	],
 	"variable": [
@@ -298,6 +578,16 @@
 			"key": "tokenPrefix",
 			"value": "User",
 			"description": "Can be 'User' or 'Admin' depending on the role login",
+			"type": "string"
+		},
+		{
+			"key": "fileKey",
+			"value": "Social_Media_App/Users/REPLACE_WITH_USER_ID/Uploads/test.png",
+			"type": "string"
+		},
+		{
+			"key": "folderPath",
+			"value": "Uploads",
 			"type": "string"
 		}
 	]
