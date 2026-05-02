@@ -160,7 +160,7 @@ export class S3Service {
 
   async deleteFile(key: string): Promise<void> {
     try {
-      const command = new DeleteObjectCommand({
+      const command = new DeleteObjectCommand({ 
         Bucket: AWS_BUCKET_NAME,
         Key: key,
       });

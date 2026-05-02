@@ -9,7 +9,7 @@ const multerCloud = ({
   custom_types = File_Type_Enum.image,
   MaxFileSize = 1024 * 1024* 5, // 5MB
 }: {
-  store_type?: Store_Enum;
+  store_type?: Store_Enum; 
   custom_types?: File_Type_Enum;
   MaxFileSize?: number;
 } = {}) => {

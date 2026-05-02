@@ -746,7 +746,7 @@ class AuthService {
         return next(new AppError("Unauthorized to delete this file", 403));
       }
 
-      await this._s3Service.deleteFile(key);
+      await this._s3Service.deleteFile(key); 
 
       SuccessResponse({
         res,

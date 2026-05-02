@@ -83,7 +83,7 @@ const userSchema = new mongoose.Schema<IUser>(
     this.lastName = lastName;
   });
 
-userSchema.pre("save", function () {
+userSchema.pre("save", function () { 
   console.log("--- Document Middleware (pre-save) ---");
   console.log(`[${new Date().toISOString()}] Hook triggered for user ID: ${this._id || 'new document'}`);
   console.log(`[${new Date().toISOString()}] Data being persisted:`, this.toObject());

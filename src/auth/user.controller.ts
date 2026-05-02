@@ -28,4 +28,4 @@ authRouter.get("/get-presigned-url/:key(*)", authentication, userService.getPres
 authRouter.delete("/delete-files", authentication, Validation(deleteFilesSchema), userService.deleteFiles);
 authRouter.delete("/delete-folder/:path(*)", authentication, userService.deleteFolder);
 
-export default authRouter;
+export default authRouter; 

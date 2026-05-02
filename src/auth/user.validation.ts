@@ -5,7 +5,7 @@ import e from "express";
 
 export const signUpSchema = {
   body: z
-    .object({
+    .object({ 
       userName: z
         .string("Username must be a string")
         .min(3, "Username must be at least 3 characters long")
