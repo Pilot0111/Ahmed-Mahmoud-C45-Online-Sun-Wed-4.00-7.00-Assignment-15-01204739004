@@ -1,23 +1,13 @@
-import {resolve} from "path";
+import { resolve } from "node:path";
 import { config } from "dotenv";
 
 const NODE_ENV = process.env.NODE_ENV || "development";
-config({ path: resolve(__dirname, `../../.env.${NODE_ENV}`) });
+// Loading .env file from the project root directory for consistent behavior
+config({ path: resolve(process.cwd(), `.env.${NODE_ENV}`) });
 export const PORT : number = Number(process.env.PORT)  || 3000;
 export const MONGO_URI : string = process.env.MONGO_URI!;
-
 export const EMAIL = process.env.EMAIL;
 export const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
-
-
-
-let envPath = {
-  production: resolve("./src/config/.env.production"),
-  development: resolve("./src/config/.env.development"),
-};
-
-
-
 export const MONGODB_URI = process.env.MONGODB_URI!;
 export const JWT_ACCESS_SECRET_ADMIN = process.env.JWT_ACCESS_SECRET_ADMIN!;
 export const JWT_REFRESH_SECRET_ADMIN = process.env.JWT_REFRESH_SECRET_ADMIN!;

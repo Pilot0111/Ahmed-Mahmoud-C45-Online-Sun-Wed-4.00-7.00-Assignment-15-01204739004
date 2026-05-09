@@ -182,8 +182,11 @@ export class S3Service {
         Key: key,
       });
       return await this.client.send(command);
-    } catch (error) {
-      console.error("S3 getFile Error:", error);
+    } catch (error: any) {
+      console.error("S3 getFile Error:", error.name, error.message);
+      if (error.name === "NoSuchKey") {
+        throw new AppError("File not found in S3", 404);
+      }
       throw new AppError("Failed to get file from S3", 500);
     }
   }
@@ -205,10 +208,13 @@ export class S3Service {
 
   async listFiles({ path }: { path: string }) {
     try {
+      // Ensure path doesn't have leading/trailing slashes before prefixing
+      const normalizedPath = path.replace(/^\/+|\/+$/g, "");
+      const prefix = `Social_Media_App/${normalizedPath}/`;
+
       const command = new ListObjectsV2Command({
         Bucket: AWS_BUCKET_NAME,
-        // Ensure we always use our application's root prefix
-        Prefix: path.startsWith("Social_Media_App/") ? path : `Social_Media_App/${path}/`,
+        Prefix: prefix,
       });
 
       const result = await this.client.send(command);
@@ -263,8 +269,11 @@ export class S3Service {
       });
       const url = await getSignedUrl(this.client, command, { expiresIn });
       return url;
-    } catch (error) {
-      console.error("S3 getPresignedUrl Error:", error);
+    } catch (error: any) {
+      console.error("S3 getPresignedUrl Error:", error.name, error.message);
+      if (error.name === "NoSuchKey") {
+        throw new AppError("File not found in S3", 404);
+      }
       throw new AppError("Failed to create presigned URL for S3", 500);
     }
   }

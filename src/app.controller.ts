@@ -9,8 +9,17 @@ import {
 } from "./common/utils/global-error-handler";
 import authRouter from "./auth/user.controller";
 import { checkConnectionDB } from "./DB/connectionDB";
+import storyRouter from "./story/story.controller";
 import redisService from "./common/service/redis.service";
+import notificationService, {
+  NotificationService,
+} from "./service/notification.service";
+import postRouter from "./post/post.controller";
+import commentRouter from "./comments/comment.controller";
+import notificationRouter from "./notifications/notification.controller";
+
 const app: express.Application = express();
+
 const port: number = Number(PORT);
 const bootstrap = async () => {
   const limiter = rateLimit({
@@ -40,12 +49,16 @@ const bootstrap = async () => {
       message: "Welcome to Social Media APP ......:)",
       info: "This is the root route. Use /api for API endpoints.",
     });
-  }); 
+  });
   checkConnectionDB();
-  await redisService.connect(); 
-    app.use("/auth", authRouter);
+  await redisService.connect();
+  app.use("/auth", authRouter);
+  app.use("/posts", postRouter);
+  app.use("/comments", commentRouter);
+  app.use("/stories", storyRouter);
+  app.use("/notifications", notificationRouter);
 
-  app.use( (req: Request, res: Response, next: NextFunction)=> {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     throw new AppError(
       `The route ${req.originalUrl} you are trying to access with method ${req.method} does not exist. Please check the URL and try again.`,
       404,

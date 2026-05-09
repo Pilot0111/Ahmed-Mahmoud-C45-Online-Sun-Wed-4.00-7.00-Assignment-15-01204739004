@@ -16,6 +16,8 @@ export interface IUser {
   address?: string | null;
   provider?: providerEnum;
   profilePicture?: string | null;
+  fcmTokens?: string[];
+  friends?: Types.ObjectId[];
   confirmed?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -58,7 +60,9 @@ const userSchema = new mongoose.Schema<IUser>(
       default: providerEnum.system,
     },
     profilePicture: { type: String },
+    fcmTokens: [{ type: String }],
     confirmed: { type: Boolean },
+    friends: [{ type: Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,

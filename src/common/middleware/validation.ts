@@ -11,10 +11,18 @@ export const Validation = (schema: schemaType) => {
     for (const key of Object.keys(schema) as reqType[]) {
       const currentSchema = schema[key];
       if (!currentSchema) continue;
+      if (req?.file){
+       req.body.file = req.file;
+      }
+      if (req?.files){
+        req.body.files = req.files;
+      }
 
       const result = currentSchema.safeParse(req[key]);
       if (!result.success) {
-        result.error.issues.forEach((issue) => validationErrors.push(issue.message));
+        result.error.issues.forEach((issue) => {
+          validationErrors.push(`${String(key)}.${issue.path.join(".")}: ${issue.message}`);
+        });
       }
     }
     if (validationErrors.length > 0) {

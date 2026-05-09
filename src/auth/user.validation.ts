@@ -1,21 +1,20 @@
 import * as z from "zod";
 import { GenderEnum, RoleEnum } from "../common/enum/user.enum";
 import { EventEnum } from "../common/enum/emailEvent.enum";
-import e from "express";
 
 export const signUpSchema = {
   body: z
     .object({ 
-      userName: z
-        .string("Username must be a string")
+      userName: z.string({ message: "Username must be a string." })
         .min(3, "Username must be at least 3 characters long")
-        .max(25, "Username must be at most 25 characters long"),
-      email: z.string().email("Invalid email address").max(100),
-      password: z
-        .string("Password must be a string")
+        .max(25, "Username must be at most 25 characters long")
+        .nonempty("Username is required."), // Use nonempty for required string
+      email: z.string({ message: "Email must be a string." }).email("Invalid email address.").max(100).nonempty("Email is required."),
+      password: z.string({ message: "Password must be a string." })
         .min(6, "Password must be at least 6 characters long")
-        .max(100),
-      cPassword: z.string("Confirm Password must be a string"),
+        .max(100)
+        .nonempty("Password is required."),
+      cPassword: z.string().nonempty("Confirm Password is required."),
       address: z.string().max(200).optional(),
       phone: z.string().max(20).optional(),
       age: z.number().min(18).max(60),
@@ -25,35 +24,23 @@ export const signUpSchema = {
     .refine((data) => data.password === data.cPassword, {
       message: "Passwords do not match",
       path: ["cPassword"],
-      when(payload) {
-        return z
-          .object({
-            password: z
-              .string()
-              .min(6, "Password must be at least 6 characters long"),
-            cPassword: z
-              .string()
-              .min(6, "Confirm Password must be at least 6 characters long"),
-          })
-          .safeParse(payload).success;
-      },
     }),
 };
 
 export const signInSchema = {
   body: z.object({
-    email: z.string().email("Invalid email address").max(100),
-    password: z
-      .string("Password must be a string")
+    email: z.string({ message: "Email must be a string." }).email("Invalid email address.").max(100).nonempty("Email is required."),
+    password: z.string({ message: "Password must be a string." })
       .min(6, "Password must be at least 6 characters long")
-      .max(100),
+      .max(100).nonempty("Password is required."),
+    FCM: z.string().optional(), // Add FCM token here
   }),
 };
 
 export const confirmEmailSchema = {
   body: z.object({
-    email: z.string().email("Invalid email address"),
-    code: z.string().length(6, "OTP must be 6 digits"),
+    email: z.string().email("Invalid email address.").nonempty("Email is required."),
+    code: z.string().length(6, "OTP must be 6 digits.").nonempty("OTP code is required."),
   }),
 };
 
@@ -72,21 +59,21 @@ export const updatePasswordSchema = {
 
 export const forgetPasswordSchema = {
   body: z.object({
-    email: z.string().email(),
+    email: z.string({ message: "Email must be a string." }).email("Invalid email address.").nonempty("Email is required."),
   }),
 };
 
 export const resetPasswordSchema = {
   body: z.object({
-    email: z.string().email(),
-    code: z.string().length(6),
-    newPassword: z.string().min(6),
+    email: z.string({ message: "Email must be a string." }).email("Invalid email address.").nonempty("Email is required."),
+    code: z.string({ message: "OTP code must be a string." }).length(6, "OTP must be 6 digits.").nonempty("OTP code is required."),
+    newPassword: z.string({ message: "New password must be a string." }).min(6, "New password must be at least 6 characters long.").nonempty("New password is required."),
   }),
 };
 
 export const resendOtpSchema = {
-  body: z.object({
-    email: z.string().email("Invalid email address"),
+  body: z.object({ // Removed required_error from z.string()
+    email: z.string({ message: "Email must be a string." }).email("Invalid email address.").nonempty("Email is required."),
     subject: z.nativeEnum(EventEnum).optional(),
   }),
 };
@@ -99,8 +86,8 @@ export const gmailTokenSchema = {
 
 export const presignedUrlSchema = {
   body: z.object({
-    fileName: z.string().min(1, "File name is required"),
-    contentType: z.string().min(1, "Content type is required"),
+    fileName: z.string({ message: "File name must be a string." }).min(1, "File name cannot be empty.").nonempty("File name is required."),
+    contentType: z.string({ message: "Content type must be a string." }).min(1, "Content type cannot be empty.").nonempty("Content type is required."),
   }),
 };
 
@@ -116,6 +103,20 @@ export const deleteFilesSchema = {
   }),
 };
 
+export const sendNotificationSchema = {
+  body: z.object({
+    token: z.string({ message: "FCM Token must be a string." }).min(1, "FCM Token cannot be empty.").nonempty("FCM Token is required."),
+    title: z.string({ message: "Notification title must be a string." }).min(1, "Notification title cannot be empty.").nonempty("Notification title is required."),
+    body: z.string({ message: "Notification body must be a string." }).min(1, "Notification body cannot be empty.").nonempty("Notification body is required."),
+  }),
+};
+
+export const saveFcmTokenSchema = {
+  body: z.object({
+    token: z.string({ message: "FCM Token must be a string." }).min(1, "FCM Token cannot be empty.").nonempty("FCM Token is required."),
+  }),
+};
+
 export type ISignUpType = z.infer<typeof signUpSchema.body>;
 export type ISignInType = z.infer<typeof signInSchema.body>;
 export type IConfirmEmailType = z.infer<typeof confirmEmailSchema.body>;
@@ -124,3 +125,4 @@ export type IGmailTokenType = z.infer<typeof gmailTokenSchema.body>;
 export type IResendOtpType = z.infer<typeof resendOtpSchema.body>;
 export type IPresignedUrlType = z.infer<typeof presignedUrlSchema.body>;
 export type IGetKeyType = z.infer<typeof getKeySchema.body>;
+export type ISendNotificationType = z.infer<typeof sendNotificationSchema.body>;

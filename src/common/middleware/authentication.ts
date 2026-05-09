@@ -17,11 +17,18 @@ export const authentication = async (
       return next(new AppError("token not found", 401));
     }
     
-    const token = authorization.split(" ")[1];
-    if (!token) {
-      return next(new AppError("invalid received token authorization", 401));
+    // Split the header by whitespace to separate prefix and token
+    const parts = authorization.trim().split(/\s+/);
+
+    if (parts.length !== 2) {
+      return next(new AppError("invalid authorization header format. Expected '{Prefix} {Token}'", 401));
     }
-    const prefix = authorization.split(" ")[0];
+
+    const [prefix, token] = parts;
+    if (!token) {
+      return next(new AppError("token is required", 401));
+    }
+
     let JWT_ACCESS_SECRET: string;
     if (prefix === PREFIX_USER) {
       JWT_ACCESS_SECRET = JWT_ACCESS_SECRET_USER;
