@@ -1,0 +1,1037 @@
+{
+  "info": {
+    "_postman_id": "b8ddbe80-14cd-484e-8bf5-8aee69092845",
+    "name": "Social Media App V3",
+    "description": "API collection for user authentication and profile management with automated token updates.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47319938",
+    "_collection_link": "https://go.postman.co/collection/47319938-b8ddbe80-14cd-484e-8bf5-8aee69092845?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Omar\",\n    \"userName\": \"Ahmed Omar\",\n    \"email\": \"pilot0111@gmail.com\",\n    \"password\": \"Password123!\",\n    \"cPassword\": \"Password123!\",\n    \"age\": 39,\n    \"gender\": \"male\",\n    \"phone\": \"0555136589\",\n    \"address\": \"Cairo, Egypt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"subject\": \"confirmEmail\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "resend-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Email",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"code\": \"166408\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/confirm-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "confirm-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// var jsonData = pm.response.json();",
+                  "// if (jsonData.data && jsonData.data.token) {",
+                  "//     pm.collectionVariables.set(\"accessToken\", jsonData.data.token);",
+                  "//     if (jsonData.data.refresh_token) {",
+                  "//         pm.collectionVariables.set(\"refreshToken\", jsonData.data.refresh_token);",
+                  "//     }",
+                  "//     console.log(\"Tokens updated successfully!\");",
+                  "// }",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set(\"accessToken\", jsonData.data.token);",
+                  "    if (jsonData.data.refresh_token) {",
+                  "        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refresh_token);",
+                  "    }",
+                  "    // Update the prefix as well for total automation",
+                  "    if (jsonData.data.prefix) {",
+                  "        pm.collectionVariables.set(\"tokenPrefix\", jsonData.data.prefix);",
+                  "    }",
+                  "    console.log(\"Tokens and Prefix updated successfully!\");",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"password\": \"Password123!\",\n    \"FCM\":\"d-lZ85tD5q3O3Lpx8Hyofj:APA91bGNBJxLkOe_zXVWZGdFpf0nXIQyf7uNPLF5tWlS2XZOOXWsizZX163oA7MOzQ1xwBEOIsxWcVF4lNkTazpEAn2rRPeUve_rwstBH_PLCgRe-XPQOBc\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gmail Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set(\"accessToken\", jsonData.data.token);",
+                  "    console.log(\"Gmail Access Token updated!\");",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"idToken\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/gmail-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "gmail-login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forget Password",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forget-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forget-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"code\": \"232331\",\n    \"newPassword\": \"NewPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"oldPassword\": \"Password123!\",\n    \"newPassword\": \"NewPassword123!\",\n    \"cPassword\": \"NewPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/update-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "update-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"d-lZ85tD5q3O3Lpx8Hyofj:APA91bG...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/save-fcm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "save-fcm"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "S3 & Media",
+      "item": [
+        {
+          "name": "Upload Image (Single)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "/C:/Users/User/Desktop/C45 Full Stack/FrontEnd/Session9/Ahmed-Mahmoud-C45-Online-Mon&Thu-5.30-8.30-Assignment7-01204739004/pic/me.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/upload-image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "upload-image"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Images (Multiple)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": [
+                    "/C:/Users/User/Downloads/Telegram Desktop/photo_2026-04-28_20-09-59.jpg",
+                    "/C:/Users/User/Downloads/Telegram Desktop/photo_2026-04-28_20-09-56.jpg"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/upload-images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "upload-images"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Presigned URL (Upload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fileName\": \"test.png\",\n    \"contentType\": \"image/png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/presigned-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "presigned-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Profile Pic Presigned URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fileName\": \"avatar.jpg\",\n    \"contentType\": \"image/jpeg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile-pic-presigned-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile-pic-presigned-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get File (Stream)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/get-file/{{fileKey}}?download=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "get-file",
+                "{{fileKey}}"
+              ],
+              "query": [
+                {
+                  "key": "download",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Files",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/get-files?folder=Uploads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "get-files"
+              ],
+              "query": [
+                {
+                  "key": "folder",
+                  "value": "Uploads"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Presigned URL (Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/get-presigned-url/{{fileKey}}?download=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "get-presigned-url",
+                "{{fileKey}}"
+              ],
+              "query": [
+                {
+                  "key": "download",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File (Single)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"key\": \"{{fileKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/delete-file",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "delete-file"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Multiple Files",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"keys\": [\n        \"{{fileKey}}\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/delete-files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "delete-files"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Folder",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/delete-folder/{{folderPath}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "delete-folder",
+                "{{folderPath}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "https://social-s3-bucket-902371998290-us-east-1-an.s3.us-east-1.amazonaws.com/Social_Media_App/Users/69f846b2414936a4c9e",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://social-s3-bucket-902371998290-us-east-1-an.s3.us-east-1.amazonaws.com/Social_Media_App/Users/69f846b2414936a4c9e65bdb/PresignedUploads/4d8d42a9-27ac-4ae1-80ea-cc1f3a214db0_test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA5EGMP7JJJW2L2GXT%2F20260504%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260504T074351Z&X-Amz-Expires=3600&X-Amz-Signature=3ba1138a60f4244bf56b648871790019c2b1d0aacfc0a4839fbb415a70b71044&X-Amz-SignedHeaders=host&x-amz-checksum-crc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject",
+              "protocol": "https",
+              "host": [
+                "social-s3-bucket-902371998290-us-east-1-an",
+                "s3",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "Social_Media_App",
+                "Users",
+                "69f846b2414936a4c9e65bdb",
+                "PresignedUploads",
+                "4d8d42a9-27ac-4ae1-80ea-cc1f3a214db0_test.png"
+              ],
+              "query": [
+                {
+                  "key": "X-Amz-Algorithm",
+                  "value": "AWS4-HMAC-SHA256"
+                },
+                {
+                  "key": "X-Amz-Content-Sha256",
+                  "value": "UNSIGNED-PAYLOAD"
+                },
+                {
+                  "key": "X-Amz-Credential",
+                  "value": "AKIA5EGMP7JJJW2L2GXT%2F20260504%2Fus-east-1%2Fs3%2Faws4_request"
+                },
+                {
+                  "key": "X-Amz-Date",
+                  "value": "20260504T074351Z"
+                },
+                {
+                  "key": "X-Amz-Expires",
+                  "value": "3600"
+                },
+                {
+                  "key": "X-Amz-Signature",
+                  "value": "3ba1138a60f4244bf56b648871790019c2b1d0aacfc0a4839fbb415a70b71044"
+                },
+                {
+                  "key": "X-Amz-SignedHeaders",
+                  "value": "host"
+                },
+                {
+                  "key": "x-amz-checksum-crc32",
+                  "value": "AAAAAA%3D%3D"
+                },
+                {
+                  "key": "x-amz-sdk-checksum-algorithm",
+                  "value": "CRC32"
+                },
+                {
+                  "key": "x-id",
+                  "value": "PutObject"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "value": "Hi this is the first post",
+                  "type": "text",
+                  "uuid": "14125f4a-c44c-4f05-affb-0a7156945390"
+                },
+                {
+                  "key": "allowComments",
+                  "value": "allow",
+                  "type": "text",
+                  "uuid": "ddef381d-b5c9-4ef9-9ab7-2026c57912fb"
+                },
+                {
+                  "key": "availability",
+                  "value": "friends",
+                  "type": "text",
+                  "uuid": "91cb40c2-f44a-4444-b8f5-7531bff191fa"
+                },
+                {
+                  "key": "tags[0]",
+                  "value": "69f846b2414936a4c9e65bdb",
+                  "type": "text",
+                  "uuid": "924bec5a-e086-496b-a009-a3973d4386e2"
+                },
+                {
+                  "key": "tags[1]",
+                  "value": "69f846b2414936a4c9e65bds",
+                  "type": "text",
+                  "uuid": "c20770f5-3f34-4383-8d4c-2487eeed7bd6",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Post By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/profile/{{userId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "profile",
+                "{{userId}}"
+              ],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reaction\": \"like\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}?type=soft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "{{postId}}"
+              ],
+              "query": [
+                { "key": "type", "value": "soft", "description": "hard or soft" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Send Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"FCM_TOKEN_HERE\",\n    \"title\": \"Test Title\",\n    \"body\": \"This is a test notification\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/send-notification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "send-notification"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "tokenPrefix",
+      "value": "User",
+      "description": "Can be 'User' or 'Admin' depending on the role login"
+    },
+    {
+      "key": "fileKey",
+      "value": "Social_Media_App/Users/REPLACE_WITH_USER_ID/Uploads/test.png"
+    },
+    {
+      "key": "folderPath",
+      "value": "Uploads"
+    },
+    {
+      "key": "postId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
+}

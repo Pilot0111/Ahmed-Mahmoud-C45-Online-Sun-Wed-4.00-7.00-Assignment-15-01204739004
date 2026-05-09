@@ -15,4 +15,4 @@ uploads/
 *.log
 
 # Firebase/Google Cloud Credentials
-src/config/firebase-service-account.json
+src/config/firebase-service-account.json"src/config/firebase-service-account.json" 
