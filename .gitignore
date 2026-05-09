@@ -13,3 +13,6 @@ dist/
 # Local data and uploads
 uploads/
 *.log
+
+# Firebase/Google Cloud Credentials
+src/config/firebase-service-account.json
