@@ -6,15 +6,23 @@ import { AppError } from "../common/utils/global-error-handler";
 export class NotificationService {
   private readonly client: admin.app.App;
   constructor() {
-    const serviceAccount = JSON.parse(
-      readFileSync(
-        path.resolve(process.cwd(), "src/config/firebase-service-account.json"),
-        "utf-8",
-      ),
-    );
+    let credential;
+
+    // Check for Environment Variables (Best Practice for Production)
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      credential = admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      });
+    } else {
+      // Fallback to local file for development (Ensure this is in .gitignore)
+      const serviceAccountPath = path.resolve(process.cwd(), "src/config/firebase-service-account.json");
+      credential = admin.credential.cert(serviceAccountPath);
+    }
 
     this.client = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential,
     });
   }
 
