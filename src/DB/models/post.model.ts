@@ -1,4 +1,5 @@
 import mongoose, { Schema, Types } from "mongoose";
+import { IComment } from "./comment.model";
 import {
   Allow_Comment_Enum,
   Availability_Enum,
@@ -8,16 +9,17 @@ import { generalRoles } from "../../common/utils/general.role";
 
 export interface IPost {
   _id: Types.ObjectId;
-  content?: string;
-  attachments?: string[];
+  content?: string | undefined;
+  attachments?: string[] | undefined;
   createdBy: Types.ObjectId;
-  tags?: Types.ObjectId[];
-  reactions?: { userId: Types.ObjectId; type: Reaction_Enum }[];
-  allowComments?: Allow_Comment_Enum;
-  availability?: Availability_Enum;
+  mentions?: Types.ObjectId[] | undefined; // Changed from 'tags' to 'mentions' for consistency
+  reactions?: { userId: Types.ObjectId; type: Reaction_Enum }[] | undefined;
+  allowComments?: Allow_Comment_Enum | undefined;
+  availability?: Availability_Enum | undefined;
   folderId: string;
-  isDeleted?: boolean;
-  deletedAt?: Date;
+  isDeleted?: boolean | undefined;
+  deletedAt?: Date | undefined;
+  comments?: IComment[] | undefined; // Virtual field for TypeScript
 }
 
 const postSchema = new Schema<IPost>(
@@ -32,7 +34,7 @@ const postSchema = new Schema<IPost>(
     },
     attachments: [{ type: String }],
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
-    tags: [{ type: Types.ObjectId, ref: "Tag" }],
+    mentions: [{ type: Types.ObjectId, ref: "User" }],
     reactions: [
       {
         userId: { type: Types.ObjectId, ref: "User" },
@@ -102,8 +104,23 @@ postSchema.post("findOneAndUpdate", async function (doc) {
  */
 postSchema.post("findOneAndDelete", async function (doc) {
   if (doc) {
+    // Find all comments to get their attachment keys before deleting them
+    const comments = await mongoose.model("Comment").find({ postId: doc._id });
+    const attachmentKeys = comments.flatMap(c => c.attachments || []);
+
+    // Note: You'd typically trigger an S3 cleanup task here for attachmentKeys
+    
     await mongoose.model("Comment").deleteMany({ postId: doc._id });
   }
+});
+
+/**
+ * Virtual Populate for Comments
+ */
+postSchema.virtual("comments", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "postId",
 });
 
 export const postModel =

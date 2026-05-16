@@ -10,7 +10,7 @@ export const availabilityPost = (req: Request) => {
         availability: Availability_Enum.friends,
         createdBy: { $in: [...(req.user?.friends || []), req.user._id] },
       },
-      { tags: { $in: [req.user._id] } },
+      { mentions: { $in: [req.user._id] } },
     ],
   };
 };

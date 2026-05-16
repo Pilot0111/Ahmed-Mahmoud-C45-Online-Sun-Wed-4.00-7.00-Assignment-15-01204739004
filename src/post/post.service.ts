@@ -7,6 +7,7 @@ import { Store_Enum } from "../common/enum/multer.enum";
 import { S3Service } from "../service/s3.service";
 import { ICreatePostType, IUpdatePostType } from "./post.validation";
 import userRepository from "../DB/repositories/user.repository";
+import commentRepository from "../DB/repositories/comment.repository";
 import { Types } from "mongoose";
 import redisService from "../common/service/redis.service";
 import notificationService from "../service/notification.service"; // Import the default instance
@@ -16,23 +17,24 @@ import { availabilityPost } from "../common/utils/availabilityPost";
 class PostService {
   private readonly _postRepository = postRepositoryInstance;
   private readonly _userRepo = userRepository;
+  private readonly _commentRepo = commentRepository;
   private readonly _s3Service = new S3Service();
   private readonly _radisService = redisService;
   private readonly _notificationService = notificationService; // Use the imported instance
 
   createPost = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const { content, tags, allowComments, availability }: ICreatePostType =
+      const { content, mentions, allowComments, availability }: ICreatePostType = // Destructure 'mentions' from req.body
         req.body;
-      let mentions: Types.ObjectId[] = [];
+      let processedMentions: Types.ObjectId[] = []; // Renamed to avoid conflict with req.body.mentions
       let fcmToken: string[] = [];
-      if (tags?.length) {
-        const mentionsTags = await this._userRepo.find({
-          filter: { _id: { $in: tags } },
+      if (mentions?.length) { // Use 'mentions' from req.body
+        const mentionedUsers = await this._userRepo.find({
+          filter: { _id: { $in: mentions } }, // Filter by 'mentions'
         });
         //check if user mentioned himself in the post
         if (
-          mentionsTags.some(
+          mentionedUsers.some(
             (tag) => tag._id.toString() === req.user._id.toString(),
           )
         ) {
@@ -40,13 +42,13 @@ class PostService {
             new AppError("You cannot mention yourself in a post", 400),
           );
         }
-        if (mentionsTags.length !== tags.length) {
+        if (mentionedUsers.length !== mentions.length) { // Compare with 'mentions' length
           return next(new AppError("One or more tags are invalid", 400));
         }
 
-        mentions = mentionsTags.map((tag) => tag._id);
+        processedMentions = mentionedUsers.map((user) => user._id); // Map to processedMentions
         const tokensArray = await Promise.all(
-          mentions.map((id) => this._radisService.getFCMs(id)),
+          processedMentions.map((id) => this._radisService.getFCMs(id)), // Use processedMentions
         );
         fcmToken = tokensArray.flat();
       }
@@ -56,14 +58,14 @@ class PostService {
       if (req.files) {
         url = await this._s3Service.uploadFiles({
           files: req.files as Express.Multer.File[],
-          path: `Users/${req.user._id}/Posts/${folderId}`,
+          path: `users/${req.user._id}/posts/${folderId}`,
           store_type: Store_Enum.disk,
         });
       }
 
       const post = await this._postRepository.create({
         content,
-        tags: mentions,
+        mentions: processedMentions, // Pass 'processedMentions' to the 'mentions' field
         allowComments,
         availability,
         attachments: url,
@@ -101,7 +103,11 @@ class PostService {
         filter: { _id: postId, ...availabilityPost(req) },
         populate: [
           { path: "createdBy", select: "firstName lastName profilePicture" },
-          { path: "tags", select: "userName" }
+          { path: "mentions", select: "userName" },
+          { 
+            path: "comments",
+            populate: { path: "createdBy", select: "firstName lastName profilePicture" }
+          } 
         ],
       });
 
@@ -133,7 +139,10 @@ class PostService {
         page,
         limit,
         search: filter,
-        populate: [{ path: "createdBy", select: "firstName lastName profilePicture" }],
+        populate: [
+          { path: "createdBy", select: "firstName lastName profilePicture" },
+          { path: "comments" }
+        ],
       });
 
       SuccessResponse({
@@ -165,6 +174,7 @@ class PostService {
         search: filter,
         populate: [
           { path: "createdBy", select: "firstName lastName profilePicture" },
+          { path: "comments" }
         ],
       });
 
@@ -187,11 +197,11 @@ class PostService {
       //       });
       const {
         content,
-        tags,
+        mentions,
         allowComments,
         availability,
         removeFiles,
-        removeTags,
+        removeMentions, // Renamed for consistency
       }: IUpdatePostType = req.body;
 
       const post = await this._postRepository.findOne({
@@ -201,30 +211,30 @@ class PostService {
       if (!post)
         return next(new AppError("Post not found or unauthorized", 404));
       if (removeFiles?.length) {
-        const inValidFiles = removeFiles.filter(
+        const inValidFiles = (removeFiles || []).filter(
           (file) => !post.attachments?.includes(file),
         );
         if (inValidFiles.length > 0) {
           return next(new AppError("One or more files are invalid", 400));
         }
-        await this._s3Service.deleteFiles(removeFiles);
+        await this._s3Service.deleteFiles(removeFiles || []);
         if (post.attachments) {
           post.attachments = post.attachments.filter(
-            (file) => !removeFiles.includes(file),
+            (file) => !(removeFiles || []).includes(file),
           );
         }
       }
-      const updateTags = new Set(post.tags?.map((tag) => tag.toString()));
-      removeTags?.forEach((tag) => updateTags.delete(tag));
+      const updateMentions = new Set(post.mentions?.map((mention) => mention.toString())); // Use post.mentions
+      removeMentions?.forEach((mention) => updateMentions.delete(mention)); // Remove from updateMentions
 
       let fcmToken: string[] = [];
-      if (tags?.length) {
-        const mentionsTags = await this._userRepo.find({
-          filter: { _id: { $in: tags } },
+      if (mentions?.length) { // `mentions` here refers to the incoming mentions from req.body
+        const mentionedUsers = await this._userRepo.find({
+          filter: { _id: { $in: mentions } }, // Filter by incoming mentions
         });
         //check if user mentioned himself in the post
         if (
-          mentionsTags.some(
+          mentionedUsers.some(
             (tag) => tag._id.toString() === req.user._id.toString(),
           )
         ) {
@@ -232,18 +242,18 @@ class PostService {
             new AppError("You cannot mention yourself in a post", 400),
           );
         }
-        if (mentionsTags.length !== tags.length) {
-          return next(new AppError("One or more tags are invalid", 400));
+        if (mentionedUsers.length !== mentions.length) {
+          return next(new AppError("One or more mentions are invalid", 400));
         }
-        mentionsTags.forEach((tag) => updateTags.add(tag._id.toString()));
+        mentionedUsers.forEach((user) => updateMentions.add(user._id.toString())); // Add to updateMentions
         const tokensArray = await Promise.all(
-          mentionsTags.map((user) => this._radisService.getFCMs(user._id)),
+          mentionedUsers.map((user) => this._radisService.getFCMs(user._id)),
         );
         fcmToken = tokensArray.flat();
       }
       
-      // Update tags
-      post.tags = Array.from(updateTags) as any;
+      // Update mentions after processing additions and removals
+      post.mentions = Array.from(updateMentions).map(id => new Types.ObjectId(id));
 
       // Update primitive fields if provided
       if (content !== undefined) post.content = content;
@@ -254,7 +264,7 @@ class PostService {
       if (req.files && req.files.length > 0) {
         const newUrls = await this._s3Service.uploadFiles({
           files: req.files as Express.Multer.File[],
-          path: `Users/${req.user._id}/Posts/${post.folderId}`,
+          path: `users/${req.user._id}/posts/${post.folderId}`,
           store_type: Store_Enum.disk,
         });
         post.attachments = [...(post.attachments || []), ...newUrls];
@@ -289,13 +299,26 @@ class PostService {
 
       let post;
       if (type === "hard") {
+        // 1. Find post and all its comments to collect S3 keys
+        post = await this._postRepository.findOne({ filter: { _id: id, createdBy: req.user._id } });
+        if (!post) return next(new AppError("Post not found or unauthorized", 404));
+
+        const comments = await this._commentRepo.find({ filter: { postId: new Types.ObjectId(id) } });
+        
+        // 2. Collect all attachment keys
+        const postKeys = post.attachments || [];
+        const commentKeys = comments.flatMap(c => c.attachments || []);
+        const allKeys = [...postKeys, ...commentKeys];
+
+        // 3. Physical cleanup of S3 resources
+        if (allKeys.length > 0) {
+          await this._s3Service.deleteFiles(allKeys);
+        }
+
+        // 4. Delete Post (Model hooks handle DB comment deletion)
         post = await this._postRepository.findOneAndDelete({
           filter: { _id: id, createdBy: req.user._id },
         });
-        // Physical cleanup of S3 resources on hard delete
-        if (post?.attachments?.length) {
-          await this._s3Service.deleteFiles(post.attachments);
-        }
       } else {
         // Logical removal (Soft Delete)
         post = await this._postRepository.findOneAndUpdate({

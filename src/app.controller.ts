@@ -11,14 +11,31 @@ import authRouter from "./auth/user.controller";
 import { checkConnectionDB } from "./DB/connectionDB";
 import storyRouter from "./story/story.controller";
 import redisService from "./common/service/redis.service";
-import notificationService, {
-  NotificationService,
-} from "./service/notification.service";
 import postRouter from "./post/post.controller";
-import commentRouter from "./comments/comment.controller";
 import notificationRouter from "./notifications/notification.controller";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLList,
+  GraphQLNonNull,
+} from "graphql";
+import { createHandler } from "graphql-http/lib/use/express";
+import userRepository from "./DB/repositories/user.repository";
 
 const app: express.Application = express();
+
+/**
+ * Define the User Type for GraphQL
+ */
+const UserType = new GraphQLObjectType({
+  name: "User",
+  fields: {
+    id: { type: GraphQLString, resolve: (parent) => parent._id.toString() },
+    userName: { type: GraphQLString },
+    email: { type: GraphQLString },
+  },
+});
 
 const port: number = Number(PORT);
 const bootstrap = async () => {
@@ -54,9 +71,47 @@ const bootstrap = async () => {
   await redisService.connect();
   app.use("/auth", authRouter);
   app.use("/posts", postRouter);
-  app.use("/comments", commentRouter);
   app.use("/stories", storyRouter);
   app.use("/notifications", notificationRouter);
+
+  const schema = new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: "RootQueryType",
+      fields: {
+        hello: {
+          type: GraphQLString,
+          resolve: () => "Hello world",
+        },
+        getUser: {
+          type: UserType,
+          args: {
+            id: { type: new GraphQLNonNull(GraphQLString) },
+          },
+          resolve: async (parent, args) => {
+            console.log(args);
+            let user = await userRepository.findById(args.id);
+            if (!user) {
+              throw new AppError("User not found", 404);
+            }
+            return user;
+          },
+        },
+        listUsers: {
+          type: new GraphQLList(UserType),
+          resolve: async () => {
+            return await userRepository.find({ filter: {} });
+          },
+        },
+      },
+    }), // end of query
+  });
+
+  app.use(
+    "/graphql",
+    createHandler({
+      schema,
+    }),
+  );
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     throw new AppError(

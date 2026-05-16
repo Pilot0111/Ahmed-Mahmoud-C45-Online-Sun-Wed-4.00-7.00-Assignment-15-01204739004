@@ -11,7 +11,7 @@ export const createPostSchema = {
   body: z.object({
     content: z.string().min(1).max(5000).optional(),
     attachments: z.array(generalRoles.file).optional(),
-    tags: z.array(generalRoles.id).optional(),
+    mentions: z.array(generalRoles.id).optional(), // Changed from 'tags' to 'mentions'
     allowComments: z.nativeEnum(Allow_Comment_Enum).default(Allow_Comment_Enum.allow),
     availability: z.nativeEnum(Availability_Enum).default(Availability_Enum.public),
   }).superRefine((data, ctx) => {
@@ -22,9 +22,9 @@ export const createPostSchema = {
         message: "Either content or at least one attachment is required",
       });
     }
-    if(data?.tags){
-      const uniqueTags = new Set(data.tags);
-      if (uniqueTags.size !== data.tags.length) {
+    if(data?.mentions){ // Check for unique mentions
+      const uniqueTags = new Set(data.mentions);
+      if (uniqueTags.size !== data.mentions.length) {
         ctx.addIssue({
           code: "custom", 
           path: ["tags"],
@@ -42,9 +42,9 @@ export const updatePostSchema = {
   body: z.object({
     content: z.string().min(1).max(5000).optional(),
     attachments: z.array(generalRoles.file).optional(),
-    removeFiles: z.array(z.string()).optional(),
-    tags: z.array(generalRoles.id).optional(),
-    removeTags: z.array(generalRoles.id).optional(),
+    removeFiles: z.array(z.string()).optional(), // Keep as is
+    mentions: z.array(generalRoles.id).optional(), // Changed from 'tags' to 'mentions'
+    removeMentions: z.array(generalRoles.id).optional(), // Changed from 'removeTags' to 'removeMentions'
     allowComments: z.nativeEnum(Allow_Comment_Enum).default(Allow_Comment_Enum.allow),
     availability: z.nativeEnum(Availability_Enum).default(Availability_Enum.public),
   }).superRefine((data, ctx) => {
@@ -55,9 +55,9 @@ export const updatePostSchema = {
         message: "Either content or at least one attachment is required",
       });
     }
-    if (data?.tags) {
-      const uniqueTags = new Set(data.tags);
-      if (uniqueTags.size !== data.tags.length) {
+    if (data?.mentions) { // Check for unique mentions
+      const uniqueTags = new Set(data.mentions);
+      if (uniqueTags.size !== data.mentions.length) {
         ctx.addIssue({
           code: "custom",
           path: ["tags"],

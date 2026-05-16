@@ -543,7 +543,7 @@ class AuthService {
       let key: string | undefined;
       const s3UploadOptions = {
         file: req.file,
-        path: `Users/${req.user._id}/Uploads`, // A more generic path for all user uploads
+        path: `users/${req.user._id}/uploads`, // A more generic path for all user uploads
         store_type: Store_Enum.disk,
       };
 
@@ -582,7 +582,7 @@ class AuthService {
 
       const keys = await this._s3Service.uploadFiles({
         files,
-        path: `Users/${req.user._id}/MultiUploads`,
+        path: `users/${req.user._id}/multiuploads`,
         store_type: Store_Enum.disk,
         isLargeFile: hasLargeFile,
       });
@@ -607,7 +607,7 @@ class AuthService {
       const result = await this._s3Service.creatPresignedUrl({
         fileName,
         contentType,
-        path: `Users/${req.user._id}/PresignedUploads`,
+        path: `users/${req.user._id}/presigneduploads`,
       });
 
       SuccessResponse({
@@ -631,7 +631,7 @@ class AuthService {
       const result = await this._s3Service.creatPresignedUrl({
         fileName,
         contentType,
-        path: `Users/${req.user._id}/Profile`,
+        path: `users/${req.user._id}/profile`,
       });
 
       const user = await this._userModel.findByIdAndUpdate({
@@ -672,8 +672,8 @@ class AuthService {
 
       // Authorization check: Ensure the user can only access files they own or are public
       // We use startsWith (plural) to check the prefix of the S3 Key
-      const userPath = `Social_Media_App/Users/${req.user._id}/`;
-      const publicPath = `Social_Media_App/Users/Uploads/`;
+      const userPath = `Social_Media_App/users/${req.user._id}/`;
+      const publicPath = `Social_Media_App/users/uploads/`;
 
       if (!key.startsWith(userPath) && !key.startsWith(publicPath)) {
         return next(new AppError("Unauthorized to access this file", 403));
@@ -718,7 +718,7 @@ class AuthService {
         /^\/+|\/+$/g,
         "",
       );
-      const userBasePath = `Users/${req.user._id}${folder ? `/${folder}` : ""}`;
+      const userBasePath = `users/${req.user._id}${folder ? `/${folder}` : ""}`;
 
       const files = await this._s3Service.listFiles({ path: userBasePath });
 
@@ -748,8 +748,8 @@ class AuthService {
       }
 
       // Authorization check: Ensure the user can only access files they own or are public
-      const userPath = `Social_Media_App/Users/${req.user._id}/`;
-      const publicPath = `Social_Media_App/Users/Uploads/`;
+      const userPath = `Social_Media_App/users/${req.user._id}/`;
+      const publicPath = `Social_Media_App/users/uploads/`;
 
       if (!key.startsWith(userPath) && !key.startsWith(publicPath)) {
         return next(new AppError("Unauthorized to access this file", 403));
@@ -779,7 +779,7 @@ class AuthService {
         return next(new AppError("File key is required", 400));
       }
 
-      const userPath = `Social_Media_App/Users/${req.user._id}/`;
+      const userPath = `Social_Media_App/users/${req.user._id}/`;
       if (!key.startsWith(userPath)) {
         return next(new AppError("Unauthorized to delete this file", 403));
       }
@@ -803,7 +803,7 @@ class AuthService {
         return next(new AppError("File keys are required", 400));
       }
 
-      const userPath = `Social_Media_App/Users/${req.user._id}/`;
+      const userPath = `Social_Media_App/users/${req.user._id}/`;
 
       // Security: Validate that the user owns every single file requested for deletion
       for (const key of keys) {
@@ -832,7 +832,7 @@ class AuthService {
       }
 
       // Sanitize folder path and scope it to the user
-      const userBasePath = `Users/${req.user._id}/${folderPath.replace(/^\/+|\/+$/g, "")}`;
+      const userBasePath = `users/${req.user._id}/${folderPath.replace(/^\/+|\/+$/g, "")}`;
 
       // 1. List all files within the folder using the existing listFiles method
       const files = await this._s3Service.listFiles({ path: userBasePath });

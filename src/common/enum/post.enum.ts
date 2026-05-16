@@ -24,3 +24,8 @@ export enum Reaction_Enum {
   sad = "sad",
   angry = "angry",
 }
+
+export enum On_Model_Enum {
+  post = "post",
+  comment = "comment",
+}
