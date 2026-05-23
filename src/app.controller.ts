@@ -13,29 +13,14 @@ import storyRouter from "./story/story.controller";
 import redisService from "./common/service/redis.service";
 import postRouter from "./post/post.controller";
 import notificationRouter from "./notifications/notification.controller";
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLList,
-  GraphQLNonNull,
-} from "graphql";
+
 import { createHandler } from "graphql-http/lib/use/express";
 import userRepository from "./DB/repositories/user.repository";
+import { gql_schema } from "./modules/graphQl/graphQl.schema";
+import { Validation } from "./common/middleware/validation";
+import { authentication } from "./common/middleware/authentication";
 
 const app: express.Application = express();
-
-/**
- * Define the User Type for GraphQL
- */
-const UserType = new GraphQLObjectType({
-  name: "User",
-  fields: {
-    id: { type: GraphQLString, resolve: (parent) => parent._id.toString() },
-    userName: { type: GraphQLString },
-    email: { type: GraphQLString },
-  },
-});
 
 const port: number = Number(PORT);
 const bootstrap = async () => {
@@ -74,42 +59,11 @@ const bootstrap = async () => {
   app.use("/stories", storyRouter);
   app.use("/notifications", notificationRouter);
 
-  const schema = new GraphQLSchema({
-    query: new GraphQLObjectType({
-      name: "RootQueryType",
-      fields: {
-        hello: {
-          type: GraphQLString,
-          resolve: () => "Hello world",
-        },
-        getUser: {
-          type: UserType,
-          args: {
-            id: { type: new GraphQLNonNull(GraphQLString) },
-          },
-          resolve: async (parent, args) => {
-            console.log(args);
-            let user = await userRepository.findById(args.id);
-            if (!user) {
-              throw new AppError("User not found", 404);
-            }
-            return user;
-          },
-        },
-        listUsers: {
-          type: new GraphQLList(UserType),
-          resolve: async () => {
-            return await userRepository.find({ filter: {} });
-          },
-        },
-      },
-    }), // end of query
-  });
-
   app.use(
     "/graphql",
     createHandler({
-      schema,
+      schema: gql_schema,
+      context: (req: any) => ({ req }),
     }),
   );
 

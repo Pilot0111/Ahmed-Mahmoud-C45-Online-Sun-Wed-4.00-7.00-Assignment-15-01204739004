@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "b8ddbe80-14cd-484e-8bf5-8aee69092845",
+    "_postman_id": "694dd194-86ea-4832-a31e-2268574819f0",
     "name": "Social Media App V3",
     "description": "API collection for user authentication and profile management with automated token updates.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "47319938",
-    "_collection_link": "https://go.postman.co/collection/47319938-b8ddbe80-14cd-484e-8bf5-8aee69092845?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/47319938-694dd194-86ea-4832-a31e-2268574819f0?source=collection_link"
   },
   "item": [
     {
@@ -41,7 +41,7 @@
         {
           "name": "Resend OTP",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
@@ -132,7 +132,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"password\": \"Password123!\",\n    \"FCM\":\"d-lZ85tD5q3O3Lpx8Hyofj:APA91bGNBJxLkOe_zXVWZGdFpf0nXIQyf7uNPLF5tWlS2XZOOXWsizZX163oA7MOzQ1xwBEOIsxWcVF4lNkTazpEAn2rRPeUve_rwstBH_PLCgRe-XPQOBc\"\n}",
+              "raw": "{\n    \"email\": \"pilot0111@gmail.com\",\n    \"password\": \"Password123!\"\n    // \"FCM\":\"d-lZ85tD5q3O3Lpx8Hyofj:APA91bGNBJxLkOe_zXVWZGdFpf0nXIQyf7uNPLF5tWlS2XZOOXWsizZX163oA7MOzQ1xwBEOIsxWcVF4lNkTazpEAn2rRPeUve_rwstBH_PLCgRe-XPQOBc\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -347,13 +347,13 @@
               "raw": "{\n    \"token\": \"d-lZ85tD5q3O3Lpx8Hyofj:APA91bG...\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/fcm-token",
+              "raw": "{{baseUrl}}/auth/save-fcm",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "auth",
-                "fcm-token"
+                "save-fcm"
               ]
             }
           },
@@ -606,17 +606,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"keys\": [\n        \"{{fileKey}}\"\n    ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n    \"key\": \"{{fileKey}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/delete-files",
+              "raw": "{{baseUrl}}/auth/delete-file",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "auth",
-                "delete-files"
+                "delete-file"
               ]
             }
           },
@@ -895,8 +894,14 @@
                 "{{userId}}"
               ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             }
           },
@@ -917,18 +922,20 @@
               "mode": "raw",
               "raw": "{\n    \"reaction\": \"like\"\n}",
               "options": {
-                "raw": { "language": "json" }
+                "raw": {
+                  "language": "json"
+                }
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/react",
+              "raw": "{{baseUrl}}/posts/{{postId}}/like",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "posts",
                 "{{postId}}",
-                "react"
+                "like"
               ]
             }
           },
@@ -955,152 +962,12 @@
                 "{{postId}}"
               ],
               "query": [
-                { "key": "type", "value": "soft", "description": "hard or soft" }
+                {
+                  "key": "type",
+                  "value": "soft",
+                  "description": "hard or soft"
+                }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Post",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "content", "value": "Updated post content", "type": "text" },
-                { "key": "allowComments", "value": "allow", "type": "text" },
-                { "key": "availability", "value": "public", "type": "text" }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Comments",
-      "item": [
-        {
-          "name": "Add Comment",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "content", "value": "This is a comment", "type": "text" }]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/comments",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}", "comments"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Add Reply",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "content", "value": "This is a reply", "type": "text" }]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/comments/{{commentId}}/replies",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}", "comments", "{{commentId}}", "replies"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Post Comments",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/comments?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}", "comments"],
-              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Comment",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"content\": \"Updated comment content\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/comments/{{commentId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}", "comments", "{{commentId}}"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Comment",
-          "request": {
-            "method": "DELETE",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "url": {
-              "raw": "{{baseUrl}}/posts/{{postId}}/comments/{{commentId}}?type=soft",
-              "host": ["{{baseUrl}}"],
-              "path": ["posts", "{{postId}}", "comments", "{{commentId}}"],
-              "query": [{ "key": "type", "value": "soft", "description": "hard or soft" }]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Stories",
-      "item": [
-        {
-          "name": "Create Story",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "image", "type": "file", "src": "" },
-                { "key": "content", "value": "My story content", "type": "text" }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/stories/",
-              "host": ["{{baseUrl}}"],
-              "path": ["stories", ""]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Stories",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
-            "url": {
-              "raw": "{{baseUrl}}/stories/",
-              "host": ["{{baseUrl}}"],
-              "path": ["stories", ""]
             }
           },
           "response": []
@@ -1111,77 +978,223 @@
       "name": "Notifications",
       "item": [
         {
-          "name": "Send Push Notification (via Auth)",
+          "name": "Send Push Notification",
           "request": {
             "method": "POST",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"token\": \"FCM_TOKEN_HERE\",\n    \"title\": \"Test Title\",\n    \"body\": \"This is a test notification\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/send-notification",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "send-notification"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "send-notification"
+              ]
             }
           },
           "response": []
-        },
+        }
+      ]
+    },
+    {
+      "name": "Graph QL",
+      "item": [
         {
-          "name": "Create Notification (Admin)",
+          "name": "graph",
           "request": {
             "method": "POST",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n    \"title\": \"Admin Notice\",\n    \"body\": \"This is an admin notification\",\n    \"userId\": \"{{userId}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "mode": "graphql",
+              "graphql": {
+                "query": "query {\r\n    hello,\r\n}",
+                "variables": ""
+              }
             },
             "url": {
-              "raw": "{{baseUrl}}/notifications/",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", ""]
+              "raw": "http://localhost:3000/graphql",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "graphql"
+              ]
             }
           },
           "response": []
         },
         {
-          "name": "Dashboard Stats (Admin)",
+          "name": "ListUsers",
           "request": {
-            "method": "GET",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              },
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "disabled": false
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListUsers {\n    listUsers {\n        id\n        userName\n        email\n        gender\n    }\n}",
+                "variables": ""
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/notifications/dashboard-stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "dashboard-stats"]
-            }
+              "raw": "http://localhost:3000/graphql",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST http://localhost:3000/graphql -H \"Content-Type: application/json\" -H \"authorization: {{tokenPrefix}} {{accessToken}}\" -d \"{\\\"query\\\": \\\"query ListUsers {\\n    listUsers {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n}\\\"}\""
           },
           "response": []
         },
         {
-          "name": "My Notifications",
+          "name": "ListUsers2",
           "request": {
-            "method": "GET",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              },
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "disabled": false
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListUsers2 {\n    listUsers {\n        id\n        userName\n        email\n        gender\n    }\n    getUser(id: null) {\n        id\n        userName\n        email\n        gender\n    }\n    hello\n}",
+                "variables": ""
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/notifications/my",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "my"]
-            }
+              "raw": "http://localhost:3000/graphql",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST http://localhost:3000/graphql -H \"Content-Type: application/json\" -H \"authorization: {{tokenPrefix}} {{accessToken}}\" -d \"{\\\"query\\\": \\\"query ListUsers2 {\\n    listUsers {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n    getUser(id: null) {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n    hello\\n}\\\"}\""
           },
           "response": []
         },
         {
-          "name": "Delete Notification (Admin)",
+          "name": "CreateUser",
           "request": {
-            "method": "DELETE",
-            "header": [{ "key": "authorization", "value": "{{tokenPrefix}} {{accessToken}}", "type": "text" }],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateUser {\n    createUser( userName: \"Mahmoud Omar\" , email: \"pilot0111+1@gmail.com\", password: \"Password1234!\",cPassword: \"Password1234!\", gender: male, age: 30) {\n        id\n        userName\n        email\n        gender\n    }\n}",
+                "variables": ""
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "{{notificationId}}"]
-            }
+              "raw": "http://localhost:3000/graphql",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST http://localhost:3000/graphql -H \"Content-Type: application/json\" -H \"authorization: {{tokenPrefix}} {{accessToken}}\" -d \"{\\\"query\\\": \\\"mutation CreateUser {\\n    createUser(id: null, userName: null, email: null, password: null, gender: null) {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n}\\\"}\""
+          },
+          "response": []
+        },
+        {
+          "name": "ListUsers3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              },
+              {
+                "key": "authorization",
+                "value": "{{tokenPrefix}} {{accessToken}}",
+                "disabled": false
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListUsers3 {\n    listUsers {\n        id\n        userName\n        email\n        gender\n    }\n    getUser(id: null) {\n        id\n        userName\n        email\n        gender\n    }\n    hello\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/graphql",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST http://localhost:3000/graphql -H \"Content-Type: application/json\" -H \"authorization: {{tokenPrefix}} {{accessToken}}\" -d \"{\\\"query\\\": \\\"query ListUsers3 {\\n    listUsers {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n    getUser(id: null) {\\n        id\\n        userName\\n        email\\n        gender\\n    }\\n    hello\\n}\\\"}\""
           },
           "response": []
         }
@@ -1189,15 +1202,38 @@
     }
   ],
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000" },
-    { "key": "accessToken", "value": "" },
-    { "key": "refreshToken", "value": "" },
-    { "key": "tokenPrefix", "value": "User", "description": "Can be 'User' or 'Admin' depending on the role login" },
-    { "key": "fileKey", "value": "Social_Media_App/Users/REPLACE_WITH_USER_ID/Uploads/test.png" },
-    { "key": "folderPath", "value": "Uploads" },
-    { "key": "postId", "value": "" },
-    { "key": "userId", "value": "" },
-    { "key": "commentId", "value": "" },
-    { "key": "notificationId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "tokenPrefix",
+      "value": "User",
+      "description": "Can be 'User' or 'Admin' depending on the role login"
+    },
+    {
+      "key": "fileKey",
+      "value": "Social_Media_App/Users/REPLACE_WITH_USER_ID/Uploads/test.png"
+    },
+    {
+      "key": "folderPath",
+      "value": "Uploads"
+    },
+    {
+      "key": "postId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
   ]
 }

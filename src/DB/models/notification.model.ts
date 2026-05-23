@@ -3,7 +3,7 @@ import mongoose, { Schema, Types } from "mongoose";
 export interface INotification {
   title: string;
   body: string;
-  sendTo?: Types.ObjectId; // If null, it's a global announcement
+  sendTo?: Types.ObjectId | null; // If null, it's a global announcement
   createdBy: Types.ObjectId;
   isRead: boolean;
 }

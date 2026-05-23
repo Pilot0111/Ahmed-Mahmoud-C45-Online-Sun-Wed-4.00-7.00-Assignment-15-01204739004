@@ -19,7 +19,7 @@ class NotificationCRUDService {
       const notification = await this._notificationRepo.create({
         title,
         body,
-        sendTo: sendTo ? new Types.ObjectId(sendTo) : undefined,
+        sendTo: sendTo ? new Types.ObjectId(sendTo) : null,
         createdBy: req.user._id,
       });
 

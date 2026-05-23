@@ -19,6 +19,7 @@ export interface IUser {
   fcmTokens?: string[];
   friends?: Types.ObjectId[];
   confirmed?: boolean;
+  isDeleted?: boolean; // Add this property
   createdAt: Date;
   updatedAt: Date;
 }

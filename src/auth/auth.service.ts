@@ -901,6 +901,24 @@ class AuthService {
       next(error);
     }
   };
+
+  // -------------------------- User CRUD Using GraphQL------------------------------------------------//
+
+  getUser = async (_: any, args: { id: string }) => {
+    let user = await this._userModel.findById(args.id);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+    return user;
+  };
+
+  createUser = async (_: any, args: any) => {
+    return await this._userModel.create(args);
+  };
+
+  listUsers = async () => {
+    return await this._userModel.find({ filter: {} });
+  };
 }
 
 export default new AuthService();
