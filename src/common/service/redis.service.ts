@@ -118,6 +118,39 @@ class RedisService {
     }
   }
 
+    // --- Socket.IO Session Management ---
+
+    /**
+     * Generates a unique key for storing a user's active socket IDs.
+     * Key format: user:Socket:<mongo_user_id>
+     */
+    socketKey(userId: Types.ObjectId) {
+        return `user:Socket:${userId}`;
+    }
+
+    // Adds a socket ID to the user's set of active connections
+    async addSocket({ userId, SocketId }: { userId: Types.ObjectId, SocketId: string }) {
+        return await this.client.sAdd(this.socketKey(userId), SocketId);
+    }
+
+    // Removes a specific socket ID when a tab is closed
+    async removeSocket({ userId, SocketId }: { userId: Types.ObjectId, SocketId: string }) {
+        return await this.client.sRem(this.socketKey(userId), SocketId);
+    }
+
+    // Retrieves all active socket IDs for a single user
+    async getSockets(userId: Types.ObjectId) {
+        return await this.client.sMembers(this.socketKey(userId));
+    }
+
+    async hasSockets(userId: Types.ObjectId) {
+        return await this.client.sCard(this.socketKey(userId));
+    }
+
+    async removeSocketUser(userId: Types.ObjectId) {
+        return await this.client.del(this.socketKey(userId));
+    }
+
   key(userId: Types.ObjectId) {
         return `user:FCM:${userId}`;
     }

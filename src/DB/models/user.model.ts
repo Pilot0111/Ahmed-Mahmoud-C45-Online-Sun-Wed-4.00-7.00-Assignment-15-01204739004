@@ -83,9 +83,9 @@ const userSchema = new mongoose.Schema<IUser>(
     return `${this.firstName} ${this.lastName}`;
   })
   .set(function (this: any, value: string) {
-    const [firstName = "", lastName = ""] = value.split(" ");
-    this.firstName = firstName;
-    this.lastName = lastName;
+    const parts = value.split(" ");
+    this.firstName = parts[0] || "";
+    this.lastName = parts.slice(1).join(" ") || "";
   });
 
 userSchema.pre("save", function () { 

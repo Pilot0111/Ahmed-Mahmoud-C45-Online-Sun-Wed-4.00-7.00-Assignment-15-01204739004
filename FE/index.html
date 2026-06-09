@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Social Media App - Socket.IO Test</h1>
+
+    <div id="login-form" style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-width: 300px;">
+        <h3>Login</h3>
+        <input type="email" id="email" placeholder="Email" style="display: block; margin-bottom: 10px; width: 100%;">
+        <input type="password" id="password" placeholder="Password" style="display: block; margin-bottom: 10px; width: 100%;">
+        <button id="login-btn" style="width: 100%; cursor: pointer;">Sign In</button>
+        <button id="logout-btn" style="width: 100%; margin-top: 5px; cursor: pointer;">Logout</button>
+    </div>
+
+    <div id="socket-controls" style="border: 1px solid #007bff; padding: 15px; border-radius: 8px; max-width: 400px;">
+        <h3>Socket.IO Controls</h3>
+        <p>Status: <span id="status" style="font-weight: bold;">Checking...</span></p>
+        
+        <label for="event-type">Select Type:</label>
+        <select id="event-type" style="width: 100%; margin-bottom: 10px;">
+            <option value="hi">Regular Emit (Hi)</option>
+            <option value="broadcast">Broadcast (To Others)</option>
+            <option value="room">Multicast (Join & Send to Room)</option>
+            <option value="private">Private Message (Target ID)</option>
+            <option value="admin">Admin Namespace Command</option>
+        </select>
+
+        <input type="text" id="target-id" placeholder="Room Name / Target Socket ID" style="display: none; width: 100%; margin-bottom: 10px;">
+        <input type="text" id="socket-msg" placeholder="Type a message..." style="width: 100%; margin-bottom: 10px;">
+        
+        <button id="send-socket-btn" style="width: 100%; background-color: #007bff; color: white; border: none; padding: 10px; cursor: pointer;">Send Event</button>
+    </div>
+
+    <div id="message-log" style="margin-top: 20px; padding: 10px; background: #f4f4f4; border-radius: 5px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+        <strong>Log:</strong>
+        <div id="log-content"></div>
+    </div>
+
+    <!-- Using CDN for better reliability when running locally -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="./index.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@ import {
   GraphQLSchema,
   GraphQLObjectType,
 } from "graphql";
-import userQueryFields from "../../auth/graphQL/user.fields"; // Import the actual fields object
+import userQueryFields from "../auth/graphQL/user.fields"; // Import the actual fields object
 
 export const gql_schema = new GraphQLSchema({
   query: new GraphQLObjectType({

@@ -1,24 +1,25 @@
 import express, { NextFunction, Request, Response } from "express";
+import { createServer } from "node:http";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { PORT } from "./config/config.service";
+import { 
+  PORT, 
+} from "./config/config.service";
 import {
   AppError,
   globalErrorHandler,
-} from "./common/utils/global-error-handler";
-import authRouter from "./auth/user.controller";
+} from "./common/utils/global-error-handler"; 
+import authRouter from "./modules/auth/user.controller";
 import { checkConnectionDB } from "./DB/connectionDB";
-import storyRouter from "./story/story.controller";
+import storyRouter from "./modules/story/story.controller";
 import redisService from "./common/service/redis.service";
-import postRouter from "./post/post.controller";
-import notificationRouter from "./notifications/notification.controller";
+import postRouter from "./modules/post/post.controller";
+import notificationRouter from "./modules/notifications/notification.controller";
+import socketGateway from "./modules/realtime/socket.gateway";
 
 import { createHandler } from "graphql-http/lib/use/express";
-import userRepository from "./DB/repositories/user.repository";
 import { gql_schema } from "./modules/graphQl/graphQl.schema";
-import { Validation } from "./common/middleware/validation";
-import { authentication } from "./common/middleware/authentication";
 
 const app: express.Application = express();
 
@@ -37,14 +38,18 @@ const bootstrap = async () => {
       next: NextFunction,
       options: any,
     ) => {
-      console.log(
-        `${options.message} - IP: ${req.ip} - Time: ${new Date().toISOString()}`,
-      );
+      console.log(`[BACKEND] 🚨 Rate Limit: ${options.message} | IP: ${req.ip} | Time: ${new Date().toISOString()}`);
       throw new AppError(options.message || "Too many requests", 429);
     },
   });
   app.use(express.json());
-  app.use(cors(), helmet(), limiter);
+  app.use(cors());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
+  app.use(limiter);
 
   app.get("/", (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
@@ -75,8 +80,13 @@ const bootstrap = async () => {
   });
   app.use(globalErrorHandler);
 
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  const httpServer = createServer(app);
+
+  // Initialize Socket Gateway to handle events and namespaces
+  socketGateway.initIo(httpServer);
+
+  httpServer.listen(port, () => {
+    console.log(`[BACKEND] 🚀 Server is live on port ${port}`);
   });
 };
 
