@@ -75,7 +75,12 @@ clintIo.on('successMessage', (data) => {
     <img class="chatImage" src="${imagePath}" alt="" srcset="">
     <span class="mx-2">${content}</span>
     `;
-    document.getElementById('messageList').appendChild(div);
+    
+    const messageList = document.getElementById('messageList');
+    if (messageList.children.length >= 5) {
+        messageList.removeChild(messageList.firstElementChild);
+    }
+    messageList.appendChild(div);
     $(".noResult").hide()
     $("#messageBody").val('')
 })
@@ -105,7 +110,11 @@ clintIo.on("directMessage", (data) => {
     <img class="chatImage" src="${imagePath}" alt="" srcset="">
     <span class="mx-2">${message}</span>
     `;
-            document.getElementById('messageList').appendChild(div);
+            const messageList = document.getElementById('messageList');
+            if (messageList.children.length >= 5) {
+                messageList.removeChild(messageList.firstElementChild);
+            }
+            messageList.appendChild(div);
         }
 
     } else {
@@ -181,7 +190,8 @@ function displayChatUser(userId) {
         headers
     }).then(function (response) {
         console.log({ response });
-        const { chat } = response.data.data
+        // The repository now returns { meta, data }, so we rename 'data' to 'chat'
+        const { data: chat } = response.data.data
 
         console.log(chat);
         if (chat) {
@@ -213,82 +223,75 @@ function displayChatUser(userId) {
 
 // // // // // // // ********************************************************************
 // // // // // // // ******************************************************************** Show  group chat conversation
-// // // // function showGroupData(sendTo, chat) {
-// // // //     document.getElementById("sendMessage").setAttribute("onclick", `sendMessage('${sendTo}' , "group")`);
+function showGroupData(sendTo, chat) {
+    document.getElementById("sendMessage").setAttribute("onclick", `sendMessage('${sendTo}' , "group")`);
 
-// // // //     document.getElementById('messageList').innerHTML = ''
-// // // //     if (chat.messages?.length) {
-// // // //         $(".noResult").hide()
-// // // //         console.log(chat.messages);
+    document.getElementById('messageList').innerHTML = ''
+    if (chat.messages?.length) {
+        $(".noResult").hide()
+        for (const message of chat.messages) {
+            const creatorId = message.createdBy._id ? message.createdBy._id.toString() : message.createdBy.toString();
 
-// // // //         for (const message of chat.messages) {
+            if (creatorId == globalProfile._id.toString()) {
+                const div = document.createElement('div');
+                div.className = 'me text-end p-2';
+                div.dir = 'rtl';
+                const myPic = globalProfile.profilePicture ? getAuthImg(globalProfile.profilePicture) : avatar;
+                div.innerHTML = `
+                <img class="chatImage" src="${myPic}" alt="" srcset="">
+                <span class="mx-2">${message.content}</span>
+                `;
+                document.getElementById('messageList').appendChild(div);
+            } else {
+                const div = document.createElement('div');
+                div.className = 'myFriend p-2';
+                div.dir = 'ltr';
+                const senderPic = message.createdBy.profilePicture ? getAuthImg(message.createdBy.profilePicture) : avatar;
+                div.innerHTML = `
+                <img class="chatImage" src="${senderPic}" alt="" srcset="">
+                <span class="mx-2"><b>${message.createdBy.userName || 'User'}:</b> ${message.content}</span>
+                `;
+                document.getElementById('messageList').appendChild(div);
+            }
+        }
+    } else {
+        const div = document.createElement('div');
 
-// // // //             if (message.createdBy?._id.toString() == globalProfile._id.toString()) {
-// // // //                 const div = document.createElement('div');
-// // // //                 div.className = 'me text-end p-2';
-// // // //                 div.dir = 'rtl';
-// // // //                 div.innerHTML = `
-// // // //                 <img class="chatImage" src="${meImage}" alt="" srcset="">
-// // // //                 <span class="mx-2">${message.content}</span>
-// // // //                 `;
-// // // //                 document.getElementById('messageList').appendChild(div);
-// // // //             } else {
-
-// // // //                 const div = document.createElement('div');
-// // // //                 div.className = 'myFriend p-2';
-// // // //                 div.dir = 'ltr';
-// // // //                 const friendImage = message.createdBy.profilePicture ? `${baseURL}/upload/${message.createdBy.profilePicture}` : avatar
-// // // //                 div.innerHTML = `
-// // // //                 <img class="chatImage" src="${friendImage}" alt="" srcset="">
-// // // //                 <span class="mx-2">${message.content}</span>
-// // // //                 `;
-// // // //                 document.getElementById('messageList').appendChild(div);
-// // // //             }
-
-// // // //         }
-// // // //     } else {
-// // // //         const div = document.createElement('div');
-
-// // // //         div.className = 'noResult text-center  p-2';
-// // // //         div.dir = 'ltr';
-// // // //         div.innerHTML = `
-// // // //         <span class="mx-2">Say Hi to start the conversation.</span>
-// // // //         `;
-// // // //         document.getElementById('messageList').appendChild(div);
-// // // //     }
-// // // //     $(`#g_${sendTo}`).hide();
-
-
-// // // // }
+        div.className = 'noResult text-center  p-2';
+        div.dir = 'ltr';
+        div.innerHTML = `
+        <span class="mx-2">Say Hi to start the conversation.</span>
+        `;
+        document.getElementById('messageList').appendChild(div);
+    }
+    $(`#g_${sendTo}`).hide();
+}
 // // // // // // // // ********************************************************************
-// // // // function displayGroupChat(groupId) {
-// // // //     console.log({ groupId });
-// // // //     axios({
-// // // //         method: 'get',
-// // // //         url: `${baseURL}/chat/group/${groupId}`,
-// // // //         headers
-// // // //     }).then(function (response) {
-// // // //         const { chat } = response.data?.data
-// // // //         console.log({ chat });
-// // // //         if (chat) {
-// // // //             meImage = globalProfile.profilePicture ? `${baseURL}/upload/${globalProfile.profilePicture}` : avatar
-// // // //             showGroupData(groupId, chat)
-// // // //         } else {
-// // // //             showGroupData(groupId, 0)
-// // // //         }
-
-// // // //     }).catch(function (error) {
-// // // //         console.log(error);
-// // // //         console.log({ status: error.status });
-// // // //         if (error.status == 404) {
-// // // //             showGroupData(groupId, 0)
-// // // //         } else {
-// // // //             alert("Ops something went wrong")
-// // // //         }
-
-// // // //     });
-// // // // }
-// // // // // // ==============================================================================================
+function displayGroupChat(groupId) {
+    console.log({ groupId });
+    axios({
+        method: 'get',
+        url: `${baseURL}/auth/chat/group/${groupId}`,
+        headers
+    }).then(function (response) {
+        // The repository paginateMessages returns { meta, data: chatDoc }
+        const chat = response.data?.data?.data;
+        if (chat) {
+            showGroupData(groupId, chat)
+        } else {
+            showGroupData(groupId, { messages: [] })
+        }
+    }).catch(function (error) {
+        const status = error.response?.status;
+        console.error("Group Chat Error:", error);
+        if (status == 404) {
+            showGroupData(groupId, { messages: [] })
+        } else {
+            alert("Ops something went wrong")
+        }
+    });
+}
+// // ==============================================================================================
 
 
 // // // // // // ********************************************************* Show Users list 
@@ -301,9 +304,9 @@ function getUserData() {
     }).then(function (response) {
         console.log({ D: response.data });
 
-        const user = response.data?.data;
-        console.log({ user });
-
+        // Extracting user and groups as per instructor's backend logic
+        const { user, groups } = response.data?.data || {};
+        
         globalProfile = user;
         let imagePath = avatar;
         if (user.profilePicture) {
@@ -312,7 +315,7 @@ function getUserData() {
         document.getElementById("profileImage").src = imagePath
         document.getElementById("userName").innerHTML = `${user.userName}`
         showUsersData(user.friends)
-        // showGroupList(groups)
+        showGroupList(groups)
     }).catch(function (error) {
         console.log(error);
     });
@@ -341,31 +344,31 @@ function showUsersData(users = []) {
     document.getElementById('chatUsers').innerHTML = cartonna;
 }
 
-// // // // // // // // Show groups list
-// // // // function showGroupList(groups = []) {
-// // // //     let cartonna = ``
-// // // //     for (let i = 0; i < groups.length; i++) {
-// // // //         let imagePath = avatar;
-// // // //         if (groups[i].group_image) {
-// // // //             imagePath = `${baseURL}/upload/${groups[i].group_image}`
-// // // //         }
-// // // //         cartonna += `
-// // // //         <div onclick="displayGroupChat('${groups[i]._id}')" class="chatUser my-2">
-// // // //         <img class="chatImage" src="${imagePath}" alt="" srcset="">
-// // // //         <span class="ps-2">${groups[i].group}</span>
-// // // //            <span id="${"g_" + groups[i]._id}" class="ps-2 closeSpan">
-// // // //            🟢
-// // // //         </span>
-// // // //     </div>
+// // // // Show groups list
+function showGroupList(groups = []) {
+    let cartonna = ``
+    for (let i = 0; i < groups.length; i++) {
+        let imagePath = avatar;
+        if (groups[i].groupImage) {
+            imagePath = getAuthImg(groups[i].groupImage);
+        }
+        cartonna += `
+        <div onclick="displayGroupChat('${groups[i]._id}')" class="chatUser my-2">
+        <img class="chatImage" src="${imagePath}" alt="" srcset="">
+        <span class="ps-2">${groups[i].group}</span>
+           <span id="${"g_" + groups[i]._id}" class="ps-2 closeSpan">
+           🟢
+        </span>
+    </div>
 
-// // // //         `
-// // // //         clintIo.emit("join_room", { roomId: groups[i].roomId })
+        `
+        clintIo.emit("joinRoom", { roomId: groups[i].roomId })
 
-// // // //     }
+    }
 
 
-// // // //     document.getElementById('chatGroups').innerHTML = cartonna;
-// // // // }
+    document.getElementById('chatGroups').innerHTML = cartonna;
+}
 
 
 getUserData()

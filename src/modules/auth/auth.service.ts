@@ -39,7 +39,7 @@ import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { EventEnum } from "../../common/enum/emailEvent.enum";
 import { providerEnum } from "../../common/enum/provider.enum";
 import { SuccessResponse } from "../../common/utils/response.success";
-import chatModel from "../../DB/models/chat.model.js";
+import chatRepository from "../../DB/repositories/chat.repository.js";
 import { RoleEnum } from "../../common/enum/user.enum";
 import multerCloud from "../../common/middleware/multer.cloud";
 import { Readable } from "node:stream";
@@ -54,6 +54,7 @@ class AuthService {
   private readonly _redisService = redisService;
   private readonly _tokenService = tokenService;
   private readonly _s3Service = new S3Service();
+  private readonly _chatRepo = chatRepository;
   private readonly _notificationService = notificationService;
 
   constructor() {}
@@ -516,11 +517,22 @@ class AuthService {
   };
 
   getProfile = async (req: any, res: Response, next: NextFunction) => {
-    SuccessResponse({
-      res,
-      message: "User profile retrieved successfully",
-      data: req.user,
-    });
+    try {
+      const groups = await this._chatRepo.find({
+        filter: {
+          participants: { $in: [req.user._id] },
+          group: { $exists: true },
+        },
+      });
+
+      SuccessResponse({
+        res,
+        message: "User profile retrieved successfully",
+        data: { user: req.user, groups },
+      });
+    } catch (error) {
+      next(error);
+    }
   };
 
   logout = async (req: any, res: Response, next: NextFunction) => {

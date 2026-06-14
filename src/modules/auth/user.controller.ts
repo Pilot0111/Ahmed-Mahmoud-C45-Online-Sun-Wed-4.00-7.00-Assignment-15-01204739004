@@ -8,6 +8,7 @@ import { Store_Enum } from "../../common/enum/multer.enum";
 import chatRouter from "../chat/chat.controller";
 
 const authRouter: Router = Router();
+authRouter.use("/chat", chatRouter);
 authRouter.use("/:userId/chat", chatRouter);
 authRouter.post("/signup", Validation(signUpSchema) ,userService.signUp);
 authRouter.patch("/confirm-email", Validation(confirmEmailSchema), userService.confirmEmail);

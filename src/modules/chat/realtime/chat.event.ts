@@ -30,11 +30,14 @@ class ChatEvent {
      * Registers the 'joinRoom' event
      */
     joinRoom = (socket: Socket, io: Server) => {
-        socket.on("joinRoom", (roomName) => {
-            console.log(`[BACKEND] 🏠 Socket ${socket.id} joining room: ${roomName}`);
-            socket.join(roomName);
-            chatService.logEvent("Join Room", { socketId: socket.id, roomName });
-            socket.to(roomName).emit("roomUpdate", `User ${socket.id} has entered the ${roomName} room.`);
+        socket.on("joinRoom", async (data) => {
+            try {
+                await chatService.joinRoom(data, socket, io);
+                const roomId = typeof data === "string" ? data : data.roomId;
+                socket.to(roomId).emit("roomUpdate", `User ${socket.data.user.userName} has entered the room.`);
+            } catch (error: any) {
+                socket.emit("custom_error", { message: error.message || "Failed to join room" });
+            }
         });
     };
 
